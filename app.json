@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Fan Collectibles",
-    "slug": "fan-collectibles",
-    "scheme": "fancollect",
+    "name": "Fanfoil",
+    "slug": "fanfoil",
+    "scheme": "fanfoil",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,11 +10,11 @@
     "backgroundColor": "#16183A",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.fancollectibles",
+      "bundleIdentifier": "com.example.fanfoil",
       "usesAppleSignIn": true
     },
     "android": {
-      "package": "com.example.fancollectibles",
+      "package": "com.example.fanfoil",
       "adaptiveIcon": {
         "backgroundColor": "#16183A",
         "foregroundImage": "./assets/android-icon-foreground.png",

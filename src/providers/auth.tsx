@@ -31,7 +31,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 // Where magic links and OAuth return to:
 //   web     http://localhost:8081/auth/callback
-//   native  fancollect://auth/callback (exp://.../--/auth/callback in Expo Go)
+//   native  fanfoil://auth/callback (exp://.../--/auth/callback in Expo Go)
 const redirectTo = () => Linking.createURL('auth/callback');
 
 async function exchangeFromUrl(url: string) {

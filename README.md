@@ -1,4 +1,4 @@
-# Fan Collectibles (working title)
+# Fanfoil
 
 Pick a team, reveal three cards from its roster, keep one. Every card has a fixed number of copies, and that number is its rarity. One codebase runs on the web, iOS and Android, all backed by the same Supabase database, so a card claimed on the web shows up in the app.
 
@@ -83,7 +83,7 @@ Email works with no setup. Google and Apple need credentials from those companie
 3. Set `enabled = true` under `[auth.external.google]` in `supabase/config.toml` and restart `npx supabase start`.
 
 **Apple**
-- **iOS app:** uses Apple's native sign-in sheet. It needs an Apple Developer account, the bundle ID in `app.json` changed from `com.example.fancollectibles` to yours, and a development build (`npx expo run:ios`); it doesn't run in Expo Go. Add your bundle ID as a client ID under `[auth.external.apple]` and enable it.
+- **iOS app:** uses Apple's native sign-in sheet. It needs an Apple Developer account, the bundle ID in `app.json` changed from `com.example.fanfoil` to yours, and a development build (`npx expo run:ios`); it doesn't run in Expo Go. Add your bundle ID as a client ID under `[auth.external.apple]` and enable it.
 - **Web and Android:** use Apple's web sign-in, which needs a Services ID and a signing key from your Apple Developer account in the same config block.
 
 Apple requires "Sign in with Apple" in any iOS app that offers Google sign-in, which is why both are here.
