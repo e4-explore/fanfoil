@@ -72,7 +72,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const incomingUrl = Linking.useURL();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      // A stored session can outlive its account (deleted user, reset
+      // database). Ask the server; if it says the user is gone, sign out on
+      // this device. Network errors keep the session so offline still works.
+      if (data.session) {
+        const { error } = await supabase.auth.getUser();
+        if (error && 'status' in error && (error.status === 401 || error.status === 403)) {
+          await supabase.auth.signOut({ scope: 'local' });
+          setSession(null);
+          setInitializing(false);
+          return;
+        }
+      }
       setSession(data.session);
       setInitializing(false);
     });
