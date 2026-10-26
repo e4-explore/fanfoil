@@ -12,19 +12,25 @@ export function cardFacts(item: InventoryItem) {
   return [card, grade].filter(Boolean).join(' · ');
 }
 
-// Short status for grids and the claim panel.
+// Short status for grids and the claim panel. Every card is an edition:
+// vaulted types have one physical copy per unit of supply.
 export function availability(item: InventoryItem) {
-  if (item.kind === 'vaulted') return item.remaining > 0 ? 'In the vault' : 'Claimed';
   return item.remaining === 0 ? 'All claimed' : `${count(item.remaining)} of ${count(item.total_supply)} left`;
 }
 
+// "#2 of 50"
+export function edition(item: InventoryItem, serial: number) {
+  return `#${count(serial)} of ${count(item.total_supply)}`;
+}
+
 // What owning it means, for the claim success screen and card detail.
-export function ownership(item: InventoryItem, serial?: number) {
-  if (item.kind === 'vaulted') {
-    return 'This exact graded card is yours. It stays in the vault until you redeem it.';
-  }
+export function ownership(item: InventoryItem, serial?: number, cert?: string | null) {
   if (!serial) return null;
-  return `Number ${count(serial)} of ${count(item.total_supply)}. No one else will ever hold this number.`;
+  const number = `Number ${count(serial)} of ${count(item.total_supply)}.`;
+  if (item.kind === 'vaulted') {
+    return `${number} This exact graded card${cert ? ` (cert ${cert})` : ''} is yours. It stays in the vault until you redeem it.`;
+  }
+  return `${number} No one else will ever hold this number.`;
 }
 
 export function formatValue(cents: number | null) {

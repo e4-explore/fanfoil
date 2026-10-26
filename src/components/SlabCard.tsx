@@ -1,23 +1,43 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-import type { InventoryItem } from '@/lib/types';
+import type { CopyLabel, InventoryItem } from '@/lib/types';
 import { card, fonts, radius } from '@/theme';
 
 // A vaulted card: a real graded card in its slab. We show only an unedited
 // photo of the slab (no overlays or effects on the photo itself) under a
 // plain label with the facts that identify that specific card. Until a card
 // is photographed, a neutral placeholder stands in. Never draw card art here.
-export function SlabCard({ item, width }: { item: InventoryItem; width: number }) {
+//
+// Browsing shows the card type ("50 made"); an owned copy shows its number in
+// the edition and its own cert ("#2 of 50 · Cert ...").
+export function SlabCard({
+  item,
+  width,
+  serial,
+  copy,
+}: {
+  item: InventoryItem;
+  width: number;
+  serial?: number;
+  copy?: CopyLabel | null;
+}) {
   const height = Math.round(width * 1.4);
   const s = width / 300; // scale with card width, like the foil cards
   const facts = [item.card_year, item.card_set, item.card_number].filter(Boolean).join(' ');
   const grade = [item.grader, item.grade].filter(Boolean).join(' ');
+  const supply = item.total_supply.toLocaleString('en-US');
+  const editionLine = serial
+    ? [`#${serial.toLocaleString('en-US')} of ${supply}`, copy?.cert_number ? `Cert ${copy.cert_number}` : null]
+        .filter(Boolean)
+        .join(' · ')
+    : `${supply} made`;
+  const photo = copy?.photo_front_url ?? item.photo_front_url;
 
   return (
     <View
       accessible
       accessibilityRole="image"
-      accessibilityLabel={`${item.name}${facts ? `, ${facts}` : ''}${grade ? `, graded ${grade}` : ''}${item.is_sample ? ', sample card' : ''}`}
+      accessibilityLabel={`${item.name}${facts ? `, ${facts}` : ''}${grade ? `, graded ${grade}` : ''}, ${editionLine}${item.is_sample ? ', sample card' : ''}`}
       style={[styles.shell, { width, height, borderRadius: radius.card * s, padding: 8 * s }]}
     >
       <View style={[styles.label, { borderRadius: 6 * s, paddingHorizontal: 10 * s, paddingVertical: 8 * s }]}>
@@ -30,17 +50,15 @@ export function SlabCard({ item, width }: { item: InventoryItem; width: number }
         <Text style={[styles.meta, { fontSize: 12 * s, marginTop: 2 * s }]} numberOfLines={1}>
           {[facts, item.team_abbreviation].filter(Boolean).join(' · ')}
         </Text>
-        {item.cert_number ? (
-          <Text style={[styles.meta, { fontSize: 11 * s }]} numberOfLines={1}>
-            {`Cert ${item.cert_number}`}
-          </Text>
-        ) : null}
+        <Text style={[styles.meta, { fontSize: 11 * s }]} numberOfLines={1}>
+          {editionLine}
+        </Text>
       </View>
 
       <View style={[styles.window, { marginTop: 8 * s, borderRadius: 6 * s }]}>
-        {item.photo_front_url ? (
+        {photo ? (
           <Image
-            source={{ uri: item.photo_front_url }}
+            source={{ uri: photo }}
             style={StyleSheet.absoluteFill}
             resizeMode="contain"
             accessibilityIgnoresInvertColors

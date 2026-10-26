@@ -61,6 +61,7 @@ export default function MyCards() {
             key: owned.id,
             item: owned.collectible,
             serial: owned.serial_number,
+            copy: owned.vault_item,
             caption: owned.collectible.team_name ?? undefined,
           }}
           onPress={() => router.push({ pathname: '/card/[id]', params: { id: owned.collectible.id, serial: String(owned.serial_number) } })}

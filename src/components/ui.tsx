@@ -118,17 +118,28 @@ export function HoloFill() {
 // ---------------------------------------------------------------------------
 
 // Top-left of a screen, above the title.
-export function BackButton({ onPress, label = 'Back' }: { onPress: () => void; label?: string }) {
+export function BackButton({
+  onPress,
+  label = 'Back',
+  disabled,
+}: {
+  onPress: () => void;
+  label?: string;
+  disabled?: boolean;
+}) {
   const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       onPress={onPress}
+      disabled={disabled}
       hitSlop={8}
       style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
         styles.back,
         pressed && styles.pressed,
+        disabled && styles.disabled,
         focused && styles.focused,
       ]}
     >
@@ -263,6 +274,54 @@ export function Row({
       </View>
       {trailing}
     </Pressable>
+  );
+}
+
+// A single-choice row of pills that scrolls sideways (e.g. one per team).
+export function Chips<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  const styles = useStyles();
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      accessibilityRole="radiogroup"
+      accessibilityLabel={label}
+      style={styles.chipsScroll}
+      contentContainerStyle={styles.chips}
+    >
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <Pressable
+            key={o.value}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: active }}
+            onPress={() => onChange(o.value)}
+            style={({ focused }: { pressed: boolean; focused?: boolean }) => [
+              styles.chip,
+              active && styles.chipActive,
+              // The holo fill already marks the active chip; no second ring.
+              focused && !active && styles.focused,
+            ]}
+          >
+            {active ? <HoloFill /> : null}
+            <Text variant="labelSmall" tone={active ? 'onAction' : 'default'}>
+              {o.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
   );
 }
 
@@ -420,6 +479,21 @@ const useStyles = makeStyles((t) => ({
   rowPressed: { backgroundColor: t.color.sunken },
   // No opacity fade: muted text on the sunken surface still meets contrast.
   rowDisabled: { backgroundColor: t.color.sunken },
+  // Bleeds to the screen edges so chips scroll under the gutter.
+  chipsScroll: { marginTop: t.space.md, marginHorizontal: -t.space.md },
+  chips: { gap: t.space.sm, paddingHorizontal: t.space.md },
+  chip: {
+    minHeight: t.size.segment,
+    paddingHorizontal: t.space.md,
+    borderRadius: t.size.segment / 2,
+    borderWidth: 1,
+    borderColor: t.color.border,
+    backgroundColor: t.color.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  chipActive: { borderColor: 'transparent' },
   tag: {
     paddingHorizontal: t.space.sm,
     paddingVertical: t.space.xxs,

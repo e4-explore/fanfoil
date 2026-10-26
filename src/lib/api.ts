@@ -3,7 +3,7 @@
 
 import { toAppError } from './errors';
 import { supabase } from './supabase';
-import type { CollectibleKind, InventoryItem, League, Offer, OwnedCollectible, Profile, Team } from './types';
+import type { CollectibleKind, InventoryItem, League, Offer, OwnedCollectible, Profile, Team, VaultItem } from './types';
 
 async function run<T>(promise: PromiseLike<{ data: T | null; error: unknown }>): Promise<T> {
   const { data, error } = await promise;
@@ -73,7 +73,7 @@ export const api = {
   onboardingOffer: () => run<Offer>(supabase.rpc('get_onboarding_offer')),
 
   claim: (offerId: string, collectibleId: string) =>
-    run<{ claim: { id: string; serial_number: number }; collectible: InventoryItem }>(
+    run<{ claim: { id: string; serial_number: number; cert_number: string | null }; collectible: InventoryItem }>(
       supabase.rpc('claim_offer', { p_offer_id: offerId, p_collectible_id: collectibleId }),
     ),
 
@@ -98,20 +98,33 @@ export const api = {
     run<InventoryItem>(supabase.from('collectible_inventory').select('*').eq('id', id).single()),
 
   myCollection: async (): Promise<OwnedCollectible[]> => {
-    const rows = await run<{ id: string; serial_number: number; claimed_at: string; source: string; collectible_id: string }[]>(
+    const rows = await run<
+      { id: string; serial_number: number; claimed_at: string; source: string; collectible_id: string; vault_item_id: string | null }[]
+    >(
       supabase
         .from('user_collectibles')
-        .select('id, serial_number, claimed_at, source, collectible_id')
+        .select('id, serial_number, claimed_at, source, collectible_id, vault_item_id')
         .order('claimed_at', { ascending: false }),
     );
     if (rows.length === 0) return [];
-    const items = await run<InventoryItem[]>(
-      supabase.from('collectible_inventory').select('*').in('id', [...new Set(rows.map((r) => r.collectible_id))]),
-    );
+    const vaultIds = rows.map((r) => r.vault_item_id).filter((id): id is string => !!id);
+    const [items, vaultItems] = await Promise.all([
+      run<InventoryItem[]>(
+        supabase.from('collectible_inventory').select('*').in('id', [...new Set(rows.map((r) => r.collectible_id))]),
+      ),
+      vaultIds.length
+        ? run<VaultItem[]>(supabase.from('vault_items').select('id, cert_number, vault_status, photo_front_url').in('id', vaultIds))
+        : Promise.resolve([] as VaultItem[]),
+    ]);
     const byId = new Map(items.map((i) => [i.id, i]));
+    const vaultById = new Map(vaultItems.map((v) => [v.id, v]));
     return rows
       .filter((r) => byId.has(r.collectible_id))
-      .map((r) => ({ ...r, collectible: byId.get(r.collectible_id)! }));
+      .map(({ vault_item_id, ...r }) => ({
+        ...r,
+        collectible: byId.get(r.collectible_id)!,
+        vault_item: vault_item_id ? (vaultById.get(vault_item_id) ?? null) : null,
+      }));
   },
 
   updateDisplayName: (userId: string, displayName: string) =>

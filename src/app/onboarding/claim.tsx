@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Redirect, useRouter } from 'expo-router';
+import { Redirect, Stack, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, useWindowDimensions, View } from 'react-native';
+import { BackHandler, Pressable, useWindowDimensions, View } from 'react-native';
 
 import { FlipCard } from '@/components/FlipCard';
 import { CollectibleCard } from '@/components/CollectibleCard';
@@ -24,7 +24,15 @@ export default function ClaimFirstCard() {
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [claimed, setClaimed] = useState<{ item: InventoryItem; serial: number } | null>(null);
+  const [claimed, setClaimed] = useState<{ item: InventoryItem; serial: number; cert: string | null } | null>(null);
+  // Once the cards are revealed the pick is locked in: no going back to
+  // change teams. Covers the Back button, the iOS swipe, and Android's back key.
+  const locked = revealed.size > 0;
+  useEffect(() => {
+    if (!locked) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => sub.remove();
+  }, [locked]);
 
   const offer = useQuery({
     queryKey: ['offer', 'onboarding', profile?.followed_team_id],
@@ -45,7 +53,7 @@ export default function ClaimFirstCard() {
   const claim = useMutation({
     mutationFn: (collectibleId: string) => api.claim(offer.data!.id, collectibleId),
     onSuccess: async (result) => {
-      setClaimed({ item: result.collectible, serial: result.claim.serial_number });
+      setClaimed({ item: result.collectible, serial: result.claim.serial_number, cert: result.claim.cert_number });
       queryClient.invalidateQueries({ queryKey: ['collection'] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
     },
@@ -87,9 +95,15 @@ export default function ClaimFirstCard() {
         }
       >
         <Title>It’s yours</Title>
-        <Lede>{[claimed.item.name, ownership(claimed.item, claimed.serial)].filter(Boolean).join('. ')}</Lede>
+        <Lede>{[claimed.item.name, ownership(claimed.item, claimed.serial, claimed.cert)].filter(Boolean).join('. ')}</Lede>
         <View style={styles.hero}>
-          <CollectibleCard item={claimed.item} width={big} serial={claimed.serial} useMotion />
+          <CollectibleCard
+            item={claimed.item}
+            width={big}
+            serial={claimed.serial}
+            copy={claimed.cert ? { cert_number: claimed.cert, photo_front_url: null } : null}
+            useMotion
+          />
         </View>
         {claimed.item.kind === 'original' ? (
           <Text variant="small" tone="muted" align="center">
@@ -120,13 +134,6 @@ export default function ClaimFirstCard() {
   const allRevealed = options.length > 0 && options.every((o) => revealed.has(o.id));
   const selected = options.find((o) => o.id === selectedId) ?? null;
 
-  const onCardPress = (item: InventoryItem) => {
-    if (!revealed.has(item.id)) {
-      setRevealed((prev) => new Set(prev).add(item.id));
-      return;
-    }
-    setSelectedId(item.id);
-  };
 
   return (
     <Screen
@@ -140,14 +147,15 @@ export default function ClaimFirstCard() {
           />
         ) : (
           <Button
-            label="Reveal all three"
+            label={locked ? 'Reveal the new card' : 'Reveal all three'}
             variant="secondary"
             onPress={() => setRevealed(new Set(options.map((o) => o.id)))}
           />
         )
       }
     >
-      <BackButton onPress={goBack} />
+      <Stack.Screen options={{ gestureEnabled: !locked }} />
+      <BackButton onPress={goBack} disabled={locked} />
       <Title>Your first card</Title>
       <Lede>
         {options.every((o) => o.kind === 'vaulted')
@@ -169,12 +177,15 @@ export default function ClaimFirstCard() {
           const isRevealed = revealed.has(item.id);
           const isSelected = item.id === selectedId;
           return (
+            // Face-down cards aren't tappable; "Reveal all three" flips them
+            // together. Once revealed, tapping selects.
             <Pressable
               key={item.id}
               accessibilityRole="button"
-              accessibilityLabel={isRevealed ? `Select ${item.name} to claim` : 'Face-down card. Reveal.'}
-              accessibilityState={{ selected: isSelected }}
-              onPress={() => onCardPress(item)}
+              accessibilityLabel={isRevealed ? `Select ${item.name} to claim` : 'Face-down card'}
+              accessibilityState={{ selected: isSelected, disabled: !isRevealed }}
+              disabled={!isRevealed}
+              onPress={() => setSelectedId(item.id)}
               style={[styles.slot, isSelected && styles.slotSelected]}
             >
               <FlipCard item={item} width={cardWidth - t.space.sm} revealed={isRevealed} />

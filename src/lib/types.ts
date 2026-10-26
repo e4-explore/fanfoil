@@ -49,13 +49,21 @@ export type InventoryItem = {
   card_number: string | null;
   grader: string | null;
   grade: string | null;
-  cert_number: string | null;
-  photo_front_url: string | null;
-  photo_back_url: string | null;
+  photo_front_url: string | null; // representative photo of this card type
   est_value_cents: number | null;
-  vault_status: VaultStatus | null;
   is_sample: boolean;
 };
+
+// The specific physical copy a fan owns (vaulted cards only).
+export type VaultItem = {
+  id: string;
+  cert_number: string;
+  vault_status: VaultStatus;
+  photo_front_url: string | null;
+};
+
+// What a card needs to show a specific copy on its label.
+export type CopyLabel = Pick<VaultItem, 'cert_number' | 'photo_front_url'>;
 
 export type Profile = {
   id: string;
@@ -78,4 +86,5 @@ export type OwnedCollectible = {
   claimed_at: string;
   source: string;
   collectible: InventoryItem;
+  vault_item: VaultItem | null;
 };

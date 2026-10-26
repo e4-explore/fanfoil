@@ -1,12 +1,21 @@
 import type { ReactNode } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 
+import { CardBanner } from '@/components/CardBanner';
 import { CollectibleCard } from '@/components/CollectibleCard';
 import { Text } from '@/components/ui';
-import type { InventoryItem } from '@/lib/types';
+import type { CopyLabel, InventoryItem } from '@/lib/types';
 import { makeStyles, size, space } from '@/theme';
 
-export type GridEntry = { key: string; item: InventoryItem; serial?: number; caption?: string; badge?: ReactNode };
+export type GridEntry = {
+  key: string;
+  item: InventoryItem;
+  serial?: number;
+  copy?: CopyLabel | null;
+  caption?: string;
+  badge?: ReactNode;
+  banner?: string; // e.g. "Claimed", drawn across the card
+};
 
 // Responsive grid: 2 columns on phones, 3 on wider screens.
 export function useGridSizing() {
@@ -26,7 +35,10 @@ export function CardTile({ entry, width, onPress }: { entry: GridEntry; width: n
       onPress={onPress}
       style={({ pressed }) => [{ width }, pressed && styles.pressed]}
     >
-      <CollectibleCard item={entry.item} width={width} serial={entry.serial} interactive={false} />
+      <View>
+        <CollectibleCard item={entry.item} width={width} serial={entry.serial} copy={entry.copy} interactive={false} />
+        {entry.banner ? <CardBanner label={entry.banner} width={width} /> : null}
+      </View>
       <View style={styles.caption}>
         {entry.caption ? <Text variant="small" tone="muted">{entry.caption}</Text> : null}
         {entry.badge}

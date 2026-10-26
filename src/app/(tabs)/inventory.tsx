@@ -5,7 +5,7 @@ import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardTile, useGridSizing } from '@/components/CardGrid';
-import { Loading, Notice, Segmented, Spinner, Text } from '@/components/ui';
+import { Chips, Loading, Notice, Segmented, Spinner, Text } from '@/components/ui';
 import { api } from '@/lib/api';
 import { availability } from '@/lib/collectibles';
 import type { CollectibleKind } from '@/lib/types';
@@ -14,8 +14,6 @@ import { makeStyles, useTheme } from '@/theme';
 
 const PAGE_SIZE = 40;
 
-type Scope = 'team' | 'all';
-
 export default function AllCards() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -23,10 +21,20 @@ export default function AllCards() {
   const t = useTheme();
   const { profile } = useAuth();
   const { columns, gap, cardWidth } = useGridSizing();
-  const [scope, setScope] = useState<Scope>('team');
   const [kind, setKind] = useState<CollectibleKind | undefined>(undefined);
+  const [pickedTeamId, setPickedTeamId] = useState<string | undefined>(undefined);
 
-  const teamId = scope === 'team' ? profile?.followed_team_id ?? undefined : undefined;
+  // Team filter: the fan's team first (and selected by default), then A-Z.
+  const myTeamId = profile?.followed_team_id ?? undefined;
+  const myTeam = useQuery({ queryKey: ['team', myTeamId], queryFn: () => api.team(myTeamId!), enabled: !!myTeamId });
+  const leagueId = myTeam.data?.league_id;
+  const teams = useQuery({ queryKey: ['teams', leagueId], queryFn: () => api.teams(leagueId!), enabled: !!leagueId });
+  const teamOptions = useMemo(() => {
+    const list = [...(teams.data ?? [])].sort((a, b) => a.name.localeCompare(b.name));
+    const mine = list.filter((tm) => tm.id === myTeamId);
+    return [...mine, ...list.filter((tm) => tm.id !== myTeamId)].map((tm) => ({ value: tm.id, label: tm.nickname }));
+  }, [teams.data, myTeamId]);
+  const teamId = pickedTeamId ?? myTeamId;
 
   const inventory = useInfiniteQuery({
     queryKey: ['inventory', teamId ?? 'all', kind ?? 'all'],
@@ -57,17 +65,8 @@ export default function AllCards() {
         <View style={styles.header}>
           <Text accessibilityRole="header" variant="title">All cards</Text>
           <Text tone="muted" style={styles.intro}>
-            Every card, rarest first. Vaulted cards are real graded cards, one of each. Originals are limited original art.
+            Every card, rarest first, and how many copies are left. Vaulted cards are real graded cards; Originals are limited original art.
           </Text>
-          <Segmented
-            label="Teams"
-            value={scope}
-            onChange={setScope}
-            options={[
-              { value: 'team', label: 'My team' },
-              { value: 'all', label: 'All teams' },
-            ]}
-          />
           <Segmented
             label="Card type"
             value={kind ?? 'any'}
@@ -78,6 +77,9 @@ export default function AllCards() {
               { value: 'original', label: 'Originals' },
             ]}
           />
+          {teamId && teamOptions.length ? (
+            <Chips label="Team" value={teamId} onChange={setPickedTeamId} options={teamOptions} />
+          ) : null}
           {inventory.error ? <Notice tone="error" text={inventory.error.message} /> : null}
         </View>
       }
@@ -91,6 +93,7 @@ export default function AllCards() {
             item,
             caption: availability(item),
             badge: owned.has(item.id) ? <Text variant="smallStrong" tone="success">Yours</Text> : null,
+            banner: item.remaining === 0 ? 'Claimed' : undefined,
           }}
           onPress={() => router.push({ pathname: '/card/[id]', params: { id: item.id } })}
         />

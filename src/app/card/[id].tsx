@@ -5,7 +5,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { CollectibleCard } from '@/components/CollectibleCard';
 import { Button, Loading, Notice, Screen, Text } from '@/components/ui';
 import { api } from '@/lib/api';
-import { availability, cardFacts, formatValue, ownership } from '@/lib/collectibles';
+import { availability, cardFacts, edition, formatValue, ownership } from '@/lib/collectibles';
 import { makeStyles, useTheme } from '@/theme';
 
 // One card, large. Opened from "My cards" (with a serial) or "All cards".
@@ -16,6 +16,10 @@ export default function CardDetail() {
   const styles = useStyles();
   const t = useTheme();
   const item = useQuery({ queryKey: ['inventory', 'item', id], queryFn: () => api.inventoryItem(id), enabled: !!id });
+  // If the fan owns this card, show their copy (number, cert, vault status)
+  // even when they opened it from All cards.
+  const collection = useQuery({ queryKey: ['collection'], queryFn: api.myCollection });
+  const mine = collection.data?.find((c) => c.collectible.id === id);
 
   if (item.isLoading) return <Loading />;
 
@@ -31,14 +35,15 @@ export default function CardDetail() {
   }
 
   const card = item.data;
-  const serialNumber = serial ? Number(serial) : undefined;
+  const serialNumber = serial ? Number(serial) : mine?.serial_number;
+  const copy = mine?.vault_item ?? null;
   const cardWidth = Math.min(width - t.space.md * 2, 340);
   const roles = card.attributes.roles ?? [];
 
   return (
     <Screen footer={<Button label="Back" variant="secondary" onPress={back} />}>
       <View style={styles.hero}>
-        <CollectibleCard item={card} width={cardWidth} serial={serialNumber} useMotion />
+        <CollectibleCard item={card} width={cardWidth} serial={serialNumber} copy={copy} useMotion />
       </View>
       <Text variant="heading">{card.name}</Text>
       {card.kind === 'vaulted' ? (
@@ -52,10 +57,17 @@ export default function CardDetail() {
           <View style={styles.facts}>
             <Fact label="Tier" value={card.tier_name} />
             <Fact label="Estimated value" value={formatValue(card.est_value_cents) ?? '—'} />
-            <Fact label="Certificate" value={card.cert_number ?? '—'} />
-            <Fact label="Status" value={card.remaining > 0 ? 'In the vault, unclaimed' : vaultStatus[card.vault_status ?? 'in_vault']} />
+            {serialNumber ? (
+              <>
+                <Fact label="Your copy" value={edition(card, serialNumber)} />
+                <Fact label="Certificate" value={copy?.cert_number ?? '—'} />
+                <Fact label="Status" value={vaultStatus[copy?.vault_status ?? 'in_vault']} />
+              </>
+            ) : (
+              <Fact label="Copies" value={availability(card)} />
+            )}
           </View>
-          {serialNumber ? <Text style={styles.paragraph}>{ownership(card)}</Text> : null}
+          {serialNumber ? <Text style={styles.paragraph}>{ownership(card, serialNumber, copy?.cert_number)}</Text> : null}
         </>
       ) : (
         <>

@@ -53,6 +53,8 @@ export const card = {
     weave: 'rgba(255,255,255,0.06)',
     mark: '#B9A6FF',
   },
+  // Band across a card that has no copies left ("Claimed").
+  banner: { fill: 'rgba(20,20,19,0.82)', ink: '#FAF9F5', edge: 'rgba(250,249,245,0.35)' },
   // Vaulted cards: a plain frame around the unedited slab photo. The label is
   // Fanfoil's own neutral design (not any grader's label colors).
   slab: {

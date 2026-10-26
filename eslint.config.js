@@ -62,7 +62,7 @@ module.exports = defineConfig([
   // Card art scales its own typography with card width and is the same in both
   // modes; it may use raw Text and StyleSheet, but still no raw colors.
   {
-    files: ['src/components/HoloCard.tsx', 'src/components/CardBack.tsx', 'src/components/FlipCard.tsx', 'src/components/SlabCard.tsx'],
+    files: ['src/components/HoloCard.tsx', 'src/components/CardBack.tsx', 'src/components/FlipCard.tsx', 'src/components/SlabCard.tsx', 'src/components/CardBanner.tsx'],
     rules: {
       'no-restricted-syntax': ['error', colorLiteral],
       'no-restricted-imports': 'off',
