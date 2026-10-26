@@ -1,17 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Text, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 
 import { HoloCard } from '@/components/HoloCard';
-import { Button, Loading, Notice, Screen } from '@/components/ui';
+import { Button, Loading, Notice, Screen, Text } from '@/components/ui';
 import { api } from '@/lib/api';
-import { space, type } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 
 // One card, large. Opened from "My cards" (with a serial) or "All cards".
 export default function CardDetail() {
   const router = useRouter();
   const { id, serial } = useLocalSearchParams<{ id: string; serial?: string }>();
   const { width } = useWindowDimensions();
+  const styles = useStyles();
+  const t = useTheme();
   const item = useQuery({ queryKey: ['inventory', 'item', id], queryFn: () => api.inventoryItem(id), enabled: !!id });
 
   if (item.isLoading) return <Loading />;
@@ -29,23 +31,23 @@ export default function CardDetail() {
 
   const card = item.data;
   const serialNumber = serial ? Number(serial) : undefined;
-  const cardWidth = Math.min(width - space.md * 2, 340);
+  const cardWidth = Math.min(width - t.space.md * 2, 340);
   const roles = card.attributes.roles ?? [];
 
   return (
     <Screen footer={<Button label="Back" variant="secondary" onPress={back} />}>
-      <View style={{ alignItems: 'center', marginVertical: space.lg }}>
+      <View style={styles.hero}>
         <HoloCard item={card} width={cardWidth} serial={serialNumber} useMotion />
       </View>
-      <Text style={type.heading}>{card.name}</Text>
-      <Text style={type.small}>{[card.tier_name, card.team_name, card.season].filter(Boolean).join(', ')}</Text>
-      <Text style={[type.body, { marginTop: space.md }]}>{card.description}</Text>
+      <Text variant="heading">{card.name}</Text>
+      <Text variant="small" tone="muted">{[card.tier_name, card.team_name, card.season].filter(Boolean).join(', ')}</Text>
+      <Text style={styles.paragraph}>{card.description}</Text>
       {roles.length > 0 ? (
-        <Text style={[type.bodyMuted, { marginTop: space.sm }]}>
+        <Text tone="muted" style={styles.note}>
           {`Roles in this moment: ${roles.map((r) => r.replace(/-/g, ' ')).join(', ')}.`}
         </Text>
       ) : null}
-      <Text style={[type.body, { marginTop: space.md }]}>
+      <Text style={styles.paragraph}>
         {serialNumber
           ? `You hold number ${serialNumber.toLocaleString('en-US')} of ${card.total_supply.toLocaleString('en-US')}.`
           : card.remaining === 0
@@ -55,3 +57,9 @@ export default function CardDetail() {
     </Screen>
   );
 }
+
+const useStyles = makeStyles((t) => ({
+  hero: { alignItems: 'center', marginVertical: t.space.lg },
+  paragraph: { marginTop: t.space.md },
+  note: { marginTop: t.space.sm },
+}));

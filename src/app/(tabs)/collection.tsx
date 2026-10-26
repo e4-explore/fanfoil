@@ -1,17 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardTile, useGridSizing } from '@/components/CardGrid';
-import { Button, Loading, Notice } from '@/components/ui';
+import { Button, Loading, Notice, Text } from '@/components/ui';
 import { api } from '@/lib/api';
 import { useAuth } from '@/providers/auth';
-import { colors, maxContentWidth, space, type } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 
 export default function MyCards() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const styles = useStyles();
+  const t = useTheme();
   const { profile } = useAuth();
   const { columns, gap, cardWidth } = useGridSizing();
   const collection = useQuery({ queryKey: ['collection'], queryFn: api.myCollection });
@@ -26,17 +28,17 @@ export default function MyCards() {
       data={cards}
       numColumns={columns}
       keyExtractor={(c) => c.id}
-      style={{ backgroundColor: colors.arena }}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + space.lg }]}
+      style={styles.list}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + t.space.lg }]}
       columnWrapperStyle={columns > 1 ? { gap } : undefined}
-      ItemSeparatorComponent={() => <View style={{ height: space.lg }} />}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
       refreshControl={
-        <RefreshControl refreshing={collection.isRefetching} onRefresh={() => { collection.refetch(); }} tintColor={colors.shotClock} />
+        <RefreshControl refreshing={collection.isRefetching} onRefresh={() => { collection.refetch(); }} tintColor={t.color.accent} />
       }
       ListHeaderComponent={
         <View style={styles.header}>
-          <Text accessibilityRole="header" style={type.title}>My cards</Text>
-          <Text style={[type.bodyMuted, { marginTop: space.xs }]}>
+          <Text accessibilityRole="header" variant="title">My cards</Text>
+          <Text tone="muted" style={styles.intro}>
             {cards.length === 1 ? '1 card claimed' : `${cards.length} cards claimed`}
           </Text>
           {collection.error ? <Notice tone="error" text={collection.error.message} /> : null}
@@ -44,10 +46,10 @@ export default function MyCards() {
       }
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Text style={type.body}>No cards yet. Claim your first one from your team’s roster.</Text>
+          <Text>No cards yet. Claim your first one from your team’s roster.</Text>
           <Button
             label={profile?.onboarding_claimed_at ? 'Browse all cards' : 'Claim your first card'}
-            style={{ marginTop: space.md }}
+            style={styles.emptyAction}
             onPress={() => router.push(profile?.onboarding_claimed_at ? '/inventory' : '/onboarding/claim')}
           />
         </View>
@@ -68,8 +70,18 @@ export default function MyCards() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { paddingHorizontal: space.md, paddingBottom: space.xl, width: '100%', maxWidth: maxContentWidth + space.md * 2, alignSelf: 'center' },
-  header: { marginBottom: space.lg },
-  empty: { paddingVertical: space.lg },
-});
+const useStyles = makeStyles((t) => ({
+  list: { backgroundColor: t.color.background },
+  content: {
+    paddingHorizontal: t.space.md,
+    paddingBottom: t.space.xl,
+    width: '100%',
+    maxWidth: t.size.maxContent + t.space.md * 2,
+    alignSelf: 'center',
+  },
+  header: { marginBottom: t.space.lg },
+  intro: { marginTop: t.space.xs },
+  separator: { height: t.space.lg },
+  empty: { paddingVertical: t.space.lg },
+  emptyAction: { marginTop: t.space.md },
+}));

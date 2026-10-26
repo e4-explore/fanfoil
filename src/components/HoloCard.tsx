@@ -16,7 +16,7 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { CourtLines } from '@/components/CourtLines';
 import type { InventoryItem } from '@/lib/types';
-import { colors, fonts, foil, radius } from '@/theme';
+import { card, fonts, radius } from '@/theme';
 
 type Props = {
   item: InventoryItem;
@@ -30,7 +30,7 @@ const MAX_TILT = 14; // degrees
 
 export function HoloCard({ item, width, serial, interactive = true, useMotion = false }: Props) {
   const height = Math.round(width * 1.4);
-  const palette = foil[item.tier] ?? foil.role;
+  const palette = card.foil[item.tier] ?? card.foil.role;
   const tilt = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const [size, setSize] = useState({ w: width, h: height });
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -191,8 +191,8 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
             <Svg width="100%" height="100%">
               <Defs>
                 <RadialGradient id="glare" cx="50%" cy="50%" r="50%">
-                  <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.38} />
-                  <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
+                  <Stop offset="0" stopColor={card.glare} stopOpacity={0.38} />
+                  <Stop offset="1" stopColor={card.glare} stopOpacity={0} />
                 </RadialGradient>
               </Defs>
               <Rect width="100%" height="100%" fill="url(#glare)" />
@@ -207,15 +207,15 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
 const clamp = (n: number) => Math.max(-1, Math.min(1, n));
 
 const styles = StyleSheet.create({
-  stock: { padding: 7, shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 10 },
+  stock: { padding: 7, shadowColor: card.shadow, shadowOpacity: 0.45, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 10 },
   panel: { flex: 1, overflow: 'hidden', justifyContent: 'space-between' },
   clip: { overflow: 'hidden' },
   topRow: { flexDirection: 'row', justifyContent: 'space-between' },
   meta: { fontFamily: fonts.bodyBold, letterSpacing: 0.4 },
   glyph: { fontFamily: fonts.displayHeavy, textAlign: 'center', opacity: 0.92, letterSpacing: -2 },
   footer: {},
-  name: { fontFamily: fonts.displayHeavy, color: colors.chalk },
-  subtitle: { fontFamily: fonts.bodyMedium, color: colors.mist },
-  serial: { fontFamily: fonts.bodyBold, color: colors.chalk, fontVariant: ['tabular-nums'] },
+  name: { fontFamily: fonts.displayHeavy, color: card.ink },
+  subtitle: { fontFamily: fonts.bodyMedium, color: card.inkMuted },
+  serial: { fontFamily: fonts.bodyBold, color: card.ink, fontVariant: ['tabular-nums'] },
   glare: { position: 'absolute' },
 });

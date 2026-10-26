@@ -4,12 +4,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import * as SystemUI from 'expo-system-ui';
+import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Loading } from '@/components/ui';
 import { AuthProvider } from '@/providers/auth';
-import { colors } from '@/theme';
+import { useTheme } from '@/theme';
 
 export default function RootLayout() {
   const [queryClient] = useState(
@@ -23,14 +24,22 @@ export default function RootLayout() {
     BarlowCondensed_800ExtraBold,
   });
 
+  const t = useTheme();
+
+  // The window behind the app (seen during transitions and keyboard moves)
+  // follows the theme, so there's no flash of the other mode.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(t.color.background).catch(() => {});
+  }, [t]);
+
   if (!fontsLoaded) return <Loading />;
 
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <StatusBar style="light" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.arena } }} />
+          <StatusBar style={t.statusBar} />
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.color.background } }} />
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

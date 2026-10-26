@@ -1,18 +1,71 @@
-import type { ReactNode } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
+  Text as RNText,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
+  type StyleProp,
   type TextInputProps,
+  type TextProps,
+  type TextStyle,
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, fonts, maxContentWidth, radius, space, type } from '@/theme';
+import { makeStyles, useTheme, type Theme, type TypeVariant } from '@/theme';
+
+// ---------------------------------------------------------------------------
+// Text: the only way screens render text. Pick a variant from the type scale
+// and a tone; no font sizes or colors at the call site.
+// ---------------------------------------------------------------------------
+
+type Tone = 'default' | 'muted' | 'danger' | 'success' | 'onAction';
+
+const toneColor = (t: Theme, tone: Tone) =>
+  ({
+    default: t.color.text,
+    muted: t.color.textMuted,
+    danger: t.color.danger,
+    success: t.color.success,
+    onAction: t.color.onAction,
+  })[tone];
+
+export function Text({
+  variant = 'body',
+  tone = 'default',
+  align,
+  style,
+  ...rest
+}: TextProps & { variant?: TypeVariant; tone?: Tone; align?: TextStyle['textAlign']; style?: StyleProp<TextStyle> }) {
+  const t = useTheme();
+  return <RNText style={[t.type[variant], { color: toneColor(t, tone), textAlign: align }, style]} {...rest} />;
+}
+
+export function Title({ children }: { children: ReactNode }) {
+  return (
+    <Text accessibilityRole="header" variant="title">
+      {children}
+    </Text>
+  );
+}
+
+export function Lede({ children }: { children: ReactNode }) {
+  const styles = useStyles();
+  return (
+    <Text tone="muted" style={styles.lede}>
+      {children}
+    </Text>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Layout
+// ---------------------------------------------------------------------------
 
 export function Screen({
   children,
@@ -23,6 +76,8 @@ export function Screen({
   scroll?: boolean;
   footer?: ReactNode;
 }) {
+  const styles = useStyles();
+  const t = useTheme();
   const insets = useSafeAreaInsets();
   const inner = <View style={styles.column}>{children}</View>;
   return (
@@ -32,20 +87,39 @@ export function Screen({
         // on a row selects it instead of only dismissing the keyboard.
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[styles.scroll, { paddingBottom: space.xl + insets.bottom }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: t.space.xl + insets.bottom }]}
         >
           {inner}
         </ScrollView>
       ) : (
-        <View style={[styles.scroll, { flex: 1 }]}>{inner}</View>
+        <View style={[styles.scroll, styles.fill]}>{inner}</View>
       )}
-      {footer ? <View style={[styles.footer, { paddingBottom: space.md + insets.bottom }]}>{footer}</View> : null}
+      {footer ? <View style={[styles.footer, { paddingBottom: t.space.md + insets.bottom }]}>{footer}</View> : null}
     </View>
   );
 }
 
+// Fills its parent with the holographic gradient (primary actions, selections).
+export function HoloFill() {
+  const t = useTheme();
+  return (
+    <LinearGradient
+      colors={t.holo}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+    />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Controls
+// ---------------------------------------------------------------------------
+
 // Top-left of a screen, above the title.
 export function BackButton({ onPress, label = 'Back' }: { onPress: () => void; label?: string }) {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -54,21 +128,13 @@ export function BackButton({ onPress, label = 'Back' }: { onPress: () => void; l
       hitSlop={8}
       style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
         styles.back,
-        pressed && { opacity: 0.6 },
+        pressed && styles.pressed,
         focused && styles.focused,
       ]}
     >
-      <Text style={styles.backText}>{`‹ ${label}`}</Text>
+      <Text variant="label" tone="muted">{`‹ ${label}`}</Text>
     </Pressable>
   );
-}
-
-export function Title({ children }: { children: ReactNode }) {
-  return <Text accessibilityRole="header" style={type.title}>{children}</Text>;
-}
-
-export function Lede({ children }: { children: ReactNode }) {
-  return <Text style={[type.bodyMuted, { marginTop: space.sm }]}>{children}</Text>;
 }
 
 export function Button({
@@ -77,6 +143,7 @@ export function Button({
   variant = 'primary',
   loading,
   disabled,
+  inline,
   style,
 }: {
   label: string;
@@ -84,9 +151,14 @@ export function Button({
   variant?: 'primary' | 'secondary' | 'quiet';
   loading?: boolean;
   disabled?: boolean;
-  style?: ViewStyle;
+  inline?: boolean; // hug the label (left-aligned links like "Show password")
+  style?: StyleProp<ViewStyle>;
 }) {
+  const styles = useStyles();
+  const t = useTheme();
   const isDisabled = disabled || loading;
+  const holo = variant === 'primary' && !disabled;
+  const tone: Tone = holo ? 'onAction' : variant === 'primary' && disabled ? 'muted' : 'default';
   return (
     <Pressable
       accessibilityRole="button"
@@ -95,26 +167,21 @@ export function Button({
       disabled={isDisabled}
       style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
         styles.button,
-        variant === 'primary' && (disabled ? styles.secondary : styles.primary),
+        variant === 'primary' && (holo ? styles.primary : styles.secondary),
         variant === 'secondary' && styles.secondary,
         variant === 'quiet' && styles.quiet,
-        pressed && { opacity: 0.85 },
-        isDisabled && variant !== 'primary' && { opacity: 0.45 },
+        inline && styles.inline,
+        pressed && styles.pressed,
+        isDisabled && variant !== 'primary' && styles.disabled,
         focused && styles.focused,
         style,
       ]}
     >
+      {holo ? <HoloFill /> : null}
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.shotClockInk : colors.chalk} />
+        <ActivityIndicator color={holo ? t.color.onAction : t.color.text} />
       ) : (
-        <Text
-          style={[
-            styles.buttonText,
-            variant === 'primary' && !disabled ? { color: colors.shotClockInk } : { color: colors.chalk },
-            variant === 'primary' && disabled && { color: colors.mist },
-            variant === 'quiet' && { fontFamily: fonts.bodyMedium, fontSize: 15 },
-          ]}
-        >
+        <Text variant={variant === 'quiet' ? 'labelSmall' : 'label'} tone={tone}>
           {label}
         </Text>
       )}
@@ -123,14 +190,30 @@ export function Button({
 }
 
 export function Field(props: TextInputProps & { label: string }) {
-  const { label, style, ...rest } = props;
+  const { label, style, onFocus, onBlur, ...rest } = props;
+  const styles = useStyles();
+  const t = useTheme();
+  // Our own focus style (accent border) on every platform, instead of the
+  // browser's default ring on web and nothing on native.
+  const [focused, setFocused] = useState(false);
   return (
-    <View style={{ marginTop: space.md }}>
-      <Text style={type.small}>{label}</Text>
+    <View style={styles.field}>
+      <Text variant="small" tone="muted">
+        {label}
+      </Text>
       <TextInput
-        placeholderTextColor={colors.mist}
-        style={[styles.input, style]}
+        placeholderTextColor={t.color.textMuted}
+        selectionColor={t.color.accent}
+        style={[styles.input, focused && styles.inputFocused, style]}
         accessibilityLabel={label}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
         {...rest}
       />
     </View>
@@ -150,6 +233,7 @@ export function Row({
   selected?: boolean;
   trailing?: ReactNode;
 }) {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -157,106 +241,191 @@ export function Row({
       onPress={onPress}
       style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
         styles.row,
-        selected && { borderColor: colors.shotClock },
-        pressed && { backgroundColor: colors.line },
-        focused && styles.focused,
+        selected && styles.rowSelected,
+        pressed && styles.rowPressed,
+        // The selected border already marks it; don't stack a second ring.
+        focused && !selected && styles.focused,
       ]}
     >
-      <View style={{ flex: 1 }}>
-        <Text style={[type.body, { fontFamily: fonts.bodyBold }]}>{title}</Text>
-        {detail ? <Text style={type.small}>{detail}</Text> : null}
+      <View style={styles.fill}>
+        <Text variant="bodyStrong">{title}</Text>
+        {detail ? (
+          <Text variant="small" tone="muted">
+            {detail}
+          </Text>
+        ) : null}
       </View>
       {trailing}
     </Pressable>
   );
 }
 
-export function Notice({ text, tone = 'info' }: { text: string; tone?: 'info' | 'error' }) {
+export function Segmented<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  const styles = useStyles();
   return (
-    <View
-      accessibilityLiveRegion="polite"
-      style={[styles.notice, tone === 'error' && { borderColor: colors.danger }]}
-    >
-      <Text style={[type.body, { fontSize: 15 }]}>{text}</Text>
+    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={styles.segmented}>
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <Pressable
+            key={o.value}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: active }}
+            onPress={() => onChange(o.value)}
+            style={({ focused }: { pressed: boolean; focused?: boolean }) => [styles.segment, focused && styles.focused]}
+          >
+            {active ? <HoloFill /> : null}
+            <Text variant="labelSmall" tone={active ? 'onAction' : 'default'}>
+              {o.label}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Feedback
+// ---------------------------------------------------------------------------
+
+export function Notice({ text, tone = 'info' }: { text: string; tone?: 'info' | 'error' }) {
+  const styles = useStyles();
+  return (
+    <View accessibilityLiveRegion="polite" style={[styles.notice, tone === 'error' && styles.noticeError]}>
+      <Text>{text}</Text>
+    </View>
+  );
+}
+
+export function Spinner({ style }: { style?: StyleProp<ViewStyle> }) {
+  const t = useTheme();
+  return <ActivityIndicator color={t.color.accent} style={style} />;
 }
 
 export function Loading() {
+  const styles = useStyles();
+  const t = useTheme();
   return (
     <View style={styles.center}>
-      <ActivityIndicator color={colors.shotClock} size="large" />
+      <ActivityIndicator color={t.color.accent} size="large" />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.arena },
-  scroll: { paddingHorizontal: space.md, paddingTop: space.lg, alignItems: 'center' },
-  column: { width: '100%', maxWidth: maxContentWidth },
+const useStyles = makeStyles((t) => ({
+  screen: { flex: 1, backgroundColor: t.color.background },
+  scroll: { paddingHorizontal: t.space.md, paddingTop: t.space.lg, alignItems: 'center' },
+  column: { width: '100%', maxWidth: t.size.maxContent },
+  fill: { flex: 1 },
+  lede: { marginTop: t.space.sm },
+  footer: {
+    paddingHorizontal: t.space.md,
+    paddingTop: t.space.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: t.color.border,
+    backgroundColor: t.color.background,
+    alignItems: 'center',
+  },
   back: {
     alignSelf: 'flex-start',
-    minHeight: 44,
+    minHeight: t.size.touch,
     justifyContent: 'center',
-    marginTop: -space.md,
-    marginBottom: space.xs,
-    borderRadius: radius.sm,
-  },
-  backText: { fontFamily: fonts.bodyBold, fontSize: 17, color: colors.mist },
-  footer: {
-    paddingHorizontal: space.md,
-    paddingTop: space.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.line,
-    backgroundColor: colors.arena,
-    alignItems: 'center',
+    marginTop: -t.space.md,
+    marginBottom: t.space.xs,
+    borderRadius: t.radius.sm,
   },
   button: {
-    minHeight: 52,
-    borderRadius: radius.md,
+    minHeight: t.size.control,
+    borderRadius: t.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: space.lg,
+    paddingHorizontal: t.space.lg,
     width: '100%',
-    maxWidth: maxContentWidth,
+    maxWidth: t.size.maxContent,
+    overflow: 'hidden',
   },
-  primary: { backgroundColor: colors.shotClock },
-  secondary: { backgroundColor: colors.arenaDeep, borderWidth: 1, borderColor: colors.line },
-  quiet: { backgroundColor: 'transparent', minHeight: 44 },
-  buttonText: { fontFamily: fonts.bodyBold, fontSize: 17 },
-  focused: { outlineColor: colors.shotClock, outlineWidth: 2, outlineStyle: 'solid', outlineOffset: 2 } as ViewStyle,
+  primary: {},
+  secondary: { backgroundColor: t.color.surface, borderWidth: 1, borderColor: t.color.border },
+  quiet: { backgroundColor: 'transparent', minHeight: t.size.touch },
+  inline: { alignSelf: 'flex-start', width: 'auto', paddingHorizontal: 0 },
+  pressed: { opacity: 0.85 },
+  disabled: { opacity: 0.45 },
+  focused: { outlineColor: t.color.accent, outlineWidth: 2, outlineStyle: 'solid', outlineOffset: 2 } as ViewStyle,
+  field: { marginTop: t.space.md },
   input: {
-    marginTop: space.xs,
-    minHeight: 52,
-    borderRadius: radius.md,
+    ...t.type.body,
+    marginTop: t.space.xs,
+    minHeight: t.size.control,
+    borderRadius: t.radius.md,
     borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.arenaDeep,
-    paddingHorizontal: space.md,
-    color: colors.chalk,
-    fontFamily: fonts.body,
-    fontSize: 17,
+    borderColor: t.color.borderStrong,
+    backgroundColor: t.color.surface,
+    paddingHorizontal: t.space.md,
+    color: t.color.text,
+    fontSize: t.type.label.fontSize,
+    // Web only: drop the browser's focus ring; inputFocused draws ours.
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
+  // Border grows 1 -> 2, so padding shrinks by 1 to keep the text still.
+  inputFocused: { borderColor: t.color.accent, borderWidth: 2, paddingHorizontal: t.space.md - 1 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.md,
-    minHeight: 60,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-    borderRadius: radius.md,
+    gap: t.space.md,
+    minHeight: t.size.row,
+    paddingHorizontal: t.space.md,
+    paddingVertical: t.space.sm,
+    borderRadius: t.radius.md,
     borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.arenaDeep,
-    marginTop: space.sm,
+    borderColor: t.color.border,
+    backgroundColor: t.color.surface,
+    marginTop: t.space.sm,
+  },
+  // Border grows 1 -> 2; trim padding by 1 so the content doesn't shift.
+  rowSelected: {
+    borderColor: t.color.accent,
+    borderWidth: 2,
+    paddingHorizontal: t.space.md - 1,
+    paddingVertical: t.space.sm - 1,
+  },
+  rowPressed: { backgroundColor: t.color.sunken },
+  segmented: {
+    flexDirection: 'row',
+    gap: t.space.xxs,
+    marginTop: t.space.md,
+    padding: t.space.xxs,
+    borderRadius: t.radius.md,
+    backgroundColor: t.color.sunken,
+    borderWidth: 1,
+    borderColor: t.color.border,
+  },
+  segment: {
+    flex: 1,
+    minHeight: t.size.segment,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: t.radius.md - t.space.xxs,
+    overflow: 'hidden',
   },
   notice: {
-    marginTop: space.md,
-    padding: space.md,
-    borderRadius: radius.md,
+    marginTop: t.space.md,
+    padding: t.space.md,
+    borderRadius: t.radius.md,
     borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.arenaDeep,
+    borderColor: t.color.border,
+    backgroundColor: t.color.surface,
   },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.arena },
-});
+  noticeError: { borderColor: t.color.danger },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.color.background },
+}));

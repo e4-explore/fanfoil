@@ -1,10 +1,9 @@
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Text } from 'react-native';
 
-import { BackButton, Button, Field, Lede, Notice, Screen, Title } from '@/components/ui';
+import { BackButton, Button, Field, Lede, Notice, Screen, Text, Title } from '@/components/ui';
 import { hasPassword, MIN_PASSWORD_LENGTH, nextStep, useAuth } from '@/providers/auth';
-import { space, type } from '@/theme';
+import { makeStyles } from '@/theme';
 
 // Two ways in:
 //   prompt  right after a first email-code sign-in (from the index route); skippable
@@ -19,6 +18,7 @@ export default function PasswordScreen() {
   const [busy, setBusy] = useState<'save' | 'skip' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const styles = useStyles();
 
   if (!session) return <Redirect href="/sign-in" />;
 
@@ -100,11 +100,11 @@ export default function PasswordScreen() {
         textContentType="newPassword"
         onSubmitEditing={() => long && save()}
       />
-      <Text style={[type.small, { marginTop: space.xs }]}>{`At least ${MIN_PASSWORD_LENGTH} characters.`}</Text>
+      <Text variant="small" tone="muted" style={styles.hint}>{`At least ${MIN_PASSWORD_LENGTH} characters.`}</Text>
       <Button
         label={visible ? 'Hide password' : 'Show password'}
         variant="quiet"
-        style={{ alignSelf: 'flex-start', width: 'auto', paddingHorizontal: 0 }}
+        inline
         onPress={() => setVisible((v) => !v)}
       />
 
@@ -112,3 +112,7 @@ export default function PasswordScreen() {
     </Screen>
   );
 }
+
+const useStyles = makeStyles((t) => ({
+  hint: { marginTop: t.space.xs },
+}));

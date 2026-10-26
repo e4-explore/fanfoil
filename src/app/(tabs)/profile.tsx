@@ -1,17 +1,17 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text } from 'react-native';
 
-import { Button, Field, Loading, Notice, Row, Screen, Title } from '@/components/ui';
+import { Button, Field, Loading, Notice, Row, Screen, Text, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import { hasPassword, useAuth } from '@/providers/auth';
-import { space, type } from '@/theme';
+import { makeStyles } from '@/theme';
 
 export default function Profile() {
   const router = useRouter();
   const { session, profile, refreshProfile, signOut } = useAuth();
   const [name, setName] = useState(profile?.display_name ?? '');
+  const styles = useStyles();
 
   useEffect(() => setName(profile?.display_name ?? ''), [profile?.display_name]);
 
@@ -31,24 +31,24 @@ export default function Profile() {
   return (
     <Screen>
       <Title>Profile</Title>
-      <Text style={[type.bodyMuted, { marginTop: space.xs }]}>{session?.user.email}</Text>
+      <Text tone="muted" style={styles.email}>{session?.user.email}</Text>
 
-      <Text style={[type.heading, { marginTop: space.xl }]}>Your team</Text>
+      <Text variant="heading" style={styles.section}>Your team</Text>
       <Row
         title={team.data?.name ?? '…'}
         detail="Switch teams"
         onPress={() => router.push({ pathname: '/onboarding/team', params: { mode: 'switch' } })}
       />
-      <Text style={[type.small, { marginTop: space.sm }]}>
+      <Text variant="small" tone="muted" style={styles.hint}>
         You can switch any time. Your first card is a one-time pick, and switching doesn’t give you another.
       </Text>
 
-      <Text style={[type.heading, { marginTop: space.xl }]}>Display name</Text>
+      <Text variant="heading" style={styles.section}>Display name</Text>
       <Field label="Shown on your collection" value={name} onChangeText={setName} maxLength={40} />
       <Button
         label={save.isSuccess && name.trim() === profile.display_name ? 'Saved' : 'Save name'}
         variant="secondary"
-        style={{ marginTop: space.md }}
+        style={styles.action}
         disabled={!name.trim() || name.trim() === (profile.display_name ?? '')}
         loading={save.isPending}
         onPress={() => save.mutate()}
@@ -57,7 +57,7 @@ export default function Profile() {
 
       {session?.user.email ? (
         <>
-          <Text style={[type.heading, { marginTop: space.xl }]}>Password</Text>
+          <Text variant="heading" style={styles.section}>Password</Text>
           <Row
             title={hasPassword(session) ? 'Change password' : 'Add a password'}
             detail={hasPassword(session) ? undefined : 'Optional. Sign in without waiting for a code.'}
@@ -66,7 +66,14 @@ export default function Profile() {
         </>
       ) : null}
 
-      <Button label="Sign out" variant="quiet" style={{ marginTop: space.xl }} onPress={signOut} />
+      <Button label="Sign out" variant="quiet" style={styles.section} onPress={signOut} />
     </Screen>
   );
 }
+
+const useStyles = makeStyles((t) => ({
+  email: { marginTop: t.space.xs },
+  section: { marginTop: t.space.xl },
+  hint: { marginTop: t.space.sm },
+  action: { marginTop: t.space.md },
+}));

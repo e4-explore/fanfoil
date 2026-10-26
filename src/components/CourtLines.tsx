@@ -1,7 +1,9 @@
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
+import { card } from '@/theme';
+
 // Half-court markings drawn behind the card art. Original line art, no marks.
-export function CourtLines({ color = 'rgba(255,255,255,0.13)' }: { color?: string }) {
+export function CourtLines({ color = card.courtLine }: { color?: string }) {
   return (
     <Svg width="100%" height="100%" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">
       {/* baseline + hoop */}

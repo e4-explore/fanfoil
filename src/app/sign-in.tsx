@@ -1,13 +1,14 @@
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
-import { Button, Field, Lede, Notice, Screen, Title } from '@/components/ui';
+import { Button, Field, Lede, Notice, Screen, Text, Title } from '@/components/ui';
 import { useAuth, type OAuthProvider } from '@/providers/auth';
-import { colors, space, type } from '@/theme';
+import { makeStyles } from '@/theme';
 
 export default function SignIn() {
   const { session, sendEmailCode, verifyEmailCode, signInWithPassword, signInWithProvider } = useAuth();
+  const styles = useStyles();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
@@ -60,7 +61,7 @@ export default function SignIn() {
           {emailField(sendCode)}
           <Button
             label="Email me a sign-in code"
-            style={{ marginTop: space.md }}
+            style={styles.gap}
             disabled={!emailValid}
             loading={busy === 'email'}
             onPress={sendCode}
@@ -87,7 +88,7 @@ export default function SignIn() {
           />
           <Button
             label="Sign in"
-            style={{ marginTop: space.md }}
+            style={styles.gap}
             disabled={!emailValid || !password}
             loading={busy === 'password'}
             onPress={passwordSignIn}
@@ -112,7 +113,7 @@ export default function SignIn() {
           />
           <Button
             label="Sign in"
-            style={{ marginTop: space.md }}
+            style={styles.gap}
             disabled={code.length !== 6}
             loading={busy === 'code'}
             onPress={() => attempt('code', () => verifyEmailCode(email.trim(), code))}
@@ -123,7 +124,7 @@ export default function SignIn() {
 
       <View style={styles.divider}>
         <View style={styles.rule} />
-        <Text style={type.small}>or</Text>
+        <Text variant="small" tone="muted">or</Text>
         <View style={styles.rule} />
       </View>
 
@@ -131,7 +132,7 @@ export default function SignIn() {
       <Button
         label="Continue with Apple"
         variant="secondary"
-        style={{ marginTop: space.sm }}
+        style={styles.gapSmall}
         loading={busy === 'apple'}
         onPress={() => provider('apple')}
       />
@@ -139,7 +140,7 @@ export default function SignIn() {
       {error ? <Notice tone="error" text={error} /> : null}
 
       {Platform.OS === 'web' ? null : (
-        <Text style={[type.small, { marginTop: space.lg }]}>
+        <Text variant="small" tone="muted" style={styles.footnote}>
           Google and Apple sign-in need provider keys set up first. Email works out of the box.
         </Text>
       )}
@@ -147,7 +148,10 @@ export default function SignIn() {
   );
 }
 
-const styles = StyleSheet.create({
-  divider: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginVertical: space.lg },
-  rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.line },
-});
+const useStyles = makeStyles((t) => ({
+  gap: { marginTop: t.space.md },
+  gapSmall: { marginTop: t.space.sm },
+  footnote: { marginTop: t.space.lg },
+  divider: { flexDirection: 'row', alignItems: 'center', gap: t.space.sm, marginVertical: t.space.lg },
+  rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: t.color.border },
+}));

@@ -1,24 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, useWindowDimensions, View } from 'react-native';
 
 import { FlipCard } from '@/components/FlipCard';
 import { HoloCard } from '@/components/HoloCard';
-import { BackButton, Button, Lede, Loading, Notice, Screen, Title } from '@/components/ui';
+import { BackButton, Button, Lede, Loading, Notice, Screen, Text, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import { AppError } from '@/lib/errors';
 import type { InventoryItem } from '@/lib/types';
 import { useAuth } from '@/providers/auth';
-import { colors, maxContentWidth, radius, space, type } from '@/theme';
-
-const GAP = 12;
+import { makeStyles, useTheme } from '@/theme';
 
 export default function ClaimFirstCard() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { profile, refreshProfile } = useAuth();
   const { width: screenWidth } = useWindowDimensions();
+  const styles = useStyles();
+  const t = useTheme();
+  const gap = t.space.sm + t.space.xs;
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -70,7 +71,7 @@ export default function ClaimFirstCard() {
 
   // Success: the claimed card, big and tiltable.
   if (claimed) {
-    const big = Math.min(screenWidth - space.md * 2, 320);
+    const big = Math.min(screenWidth - t.space.md * 2, 320);
     return (
       <Screen
         footer={
@@ -90,7 +91,7 @@ export default function ClaimFirstCard() {
         <View style={styles.hero}>
           <HoloCard item={claimed.item} width={big} serial={claimed.serial} useMotion />
         </View>
-        <Text style={[type.small, { textAlign: 'center' }]}>Tilt your phone or drag the card to see the foil.</Text>
+        <Text variant="small" tone="muted" align="center">Tilt your phone or drag the card to see the foil.</Text>
       </Screen>
     );
   }
@@ -104,14 +105,14 @@ export default function ClaimFirstCard() {
         <BackButton onPress={goBack} />
         <Title>Your first card</Title>
         <Notice tone="error" text={offer.error.message} />
-        <Button label="Try again" style={{ marginTop: space.md }} onPress={() => offer.refetch()} />
+        <Button label="Try again" style={styles.action} onPress={() => offer.refetch()} />
       </Screen>
     );
   }
 
   const options = offer.data?.options ?? [];
-  const column = Math.min(screenWidth - space.md * 2, maxContentWidth);
-  const cardWidth = Math.floor((column - GAP * (options.length - 1)) / Math.max(options.length, 1));
+  const column = Math.min(screenWidth - t.space.md * 2, t.size.maxContent);
+  const cardWidth = Math.floor((column - gap * (options.length - 1)) / Math.max(options.length, 1));
   const allRevealed = options.length > 0 && options.every((o) => revealed.has(o.id));
   const selected = options.find((o) => o.id === selectedId) ?? null;
 
@@ -147,7 +148,7 @@ export default function ClaimFirstCard() {
       <Lede>Three roles from your team’s roster. Reveal them, then keep one. You only get to pick once.</Lede>
       {notice ? <Notice text={notice} /> : null}
 
-      <View style={[styles.spread, { gap: GAP }]}>
+      <View style={[styles.spread, { gap }]}>
         {options.map((item) => {
           const isRevealed = revealed.has(item.id);
           const isSelected = item.id === selectedId;
@@ -160,7 +161,7 @@ export default function ClaimFirstCard() {
               onPress={() => onCardPress(item)}
               style={[styles.slot, isSelected && styles.slotSelected]}
             >
-              <FlipCard item={item} width={cardWidth - 8} revealed={isRevealed} />
+              <FlipCard item={item} width={cardWidth - t.space.sm} revealed={isRevealed} />
             </Pressable>
           );
         })}
@@ -168,30 +169,34 @@ export default function ClaimFirstCard() {
 
       {selected ? (
         <View style={styles.detail}>
-          <Text style={type.heading}>{selected.name}</Text>
-          <Text style={[type.body, { marginTop: space.xs }]}>{selected.description}</Text>
-          <Text style={[type.small, { marginTop: space.sm }]}>
+          <Text variant="heading">{selected.name}</Text>
+          <Text style={styles.description}>{selected.description}</Text>
+          <Text variant="small" tone="muted" style={styles.remaining}>
             {`${selected.remaining.toLocaleString('en-US')} of ${selected.total_supply.toLocaleString('en-US')} still unclaimed`}
           </Text>
         </View>
       ) : allRevealed ? (
-        <Text style={[type.bodyMuted, { marginTop: space.lg }]}>Tap a card to read about it.</Text>
+        <Text tone="muted" style={styles.hint}>Tap a card to read about it.</Text>
       ) : null}
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  spread: { flexDirection: 'row', justifyContent: 'center', marginTop: space.lg },
-  slot: { padding: 2, borderRadius: radius.card + 2, borderWidth: 2, borderColor: 'transparent' },
-  slotSelected: { borderColor: colors.shotClock },
+const useStyles = makeStyles((t) => ({
+  spread: { flexDirection: 'row', justifyContent: 'center', marginTop: t.space.lg },
+  slot: { padding: t.space.xxs, borderRadius: t.radius.card + t.space.xxs, borderWidth: 2, borderColor: 'transparent' },
+  slotSelected: { borderColor: t.color.accent },
   detail: {
-    marginTop: space.lg,
-    padding: space.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.arenaDeep,
+    marginTop: t.space.lg,
+    padding: t.space.md,
+    borderRadius: t.radius.md,
+    backgroundColor: t.color.surface,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: t.color.border,
   },
-  hero: { alignItems: 'center', marginVertical: space.xl },
-});
+  description: { marginTop: t.space.xs },
+  remaining: { marginTop: t.space.sm },
+  hint: { marginTop: t.space.lg },
+  action: { marginTop: t.space.md },
+  hero: { alignItems: 'center', marginVertical: t.space.xl },
+}));

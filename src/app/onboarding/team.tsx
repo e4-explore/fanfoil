@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, View } from 'react-native';
 
-import { BackButton, Button, Field, Lede, Loading, Notice, Row, Screen, Title } from '@/components/ui';
+import { BackButton, Button, Field, Lede, Loading, Notice, Row, Screen, Text, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import type { Team } from '@/lib/types';
 import { useAuth } from '@/providers/auth';
-import { colors, fonts, radius, space, type } from '@/theme';
+import { makeStyles } from '@/theme';
 
 export default function PickTeam() {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function PickTeam() {
   const switching = params.mode === 'switch';
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Team | null>(null);
+  const styles = useStyles();
 
   // When switching from the profile tab, stay in the current team's league.
   const currentTeam = useQuery({
@@ -93,8 +94,8 @@ export default function PickTeam() {
       <Field label="Search teams" value={query} onChangeText={setQuery} placeholder="Pacers, IND…" autoCorrect={false} />
 
       {groups.map(([conference, list]) => (
-        <View key={conference} style={{ marginTop: space.lg }}>
-          <Text style={type.heading}>{conference}</Text>
+        <View key={conference} style={styles.group}>
+          <Text variant="heading">{conference}</Text>
           {list.map((team) => (
             <Row
               key={team.id}
@@ -114,24 +115,25 @@ export default function PickTeam() {
 
 // Shows a logo if you've added one (teams.logo_url), otherwise the abbreviation.
 function TeamMark({ team }: { team: Team }) {
+  const styles = useStyles();
   if (team.logo_url) {
     return <Image source={{ uri: team.logo_url }} style={styles.mark} accessibilityIgnoresInvertColors />;
   }
   return (
     <View style={styles.mark}>
-      <Text style={styles.abbr}>{team.abbreviation}</Text>
+      <Text variant="mark">{team.abbreviation}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
+  group: { marginTop: t.space.lg },
   mark: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.sm,
-    backgroundColor: colors.arena,
+    width: t.size.touch,
+    height: t.size.touch,
+    borderRadius: t.radius.sm,
+    backgroundColor: t.color.sunken,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  abbr: { fontFamily: fonts.display, fontSize: 17, color: colors.chalk },
-});
+}));
