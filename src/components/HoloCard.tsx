@@ -92,8 +92,10 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
   const clampMode = 'clamp' as const;
   const rotateY = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [`-${MAX_TILT}deg`, `${MAX_TILT}deg`], extrapolate: clampMode });
   const rotateX = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [`${MAX_TILT}deg`, `-${MAX_TILT}deg`], extrapolate: clampMode });
-  const sheenX = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [-width * 0.9, width * 0.1], extrapolate: clampMode });
-  const sheenY = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [-height * 0.5, height * 0.1], extrapolate: clampMode });
+  // The band is 3x the card in both directions and centered on it, so even at
+  // full tilt (and rotated) its edges never come into view.
+  const sheenX = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [-width * 0.5, width * 0.7], extrapolate: clampMode });
+  const sheenY = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [-height * 0.15, height * 0.35], extrapolate: clampMode });
   const glareX = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [-width * 0.35, width * 0.85], extrapolate: clampMode });
   const glareY = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [-height * 0.3, height * 0.9], extrapolate: clampMode });
   // Glare only shows while the card is tilted, so resting cards stay clean.
@@ -159,8 +161,10 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
           <Animated.View
             style={{
               position: 'absolute',
-              width: width * 2,
-              height: height * 1.6,
+              left: -width,
+              top: -height,
+              width: width * 3,
+              height: height * 3,
               transform: [{ translateX: sheenX }, { translateY: sheenY }, { rotate: '-24deg' }],
               opacity: 0.55,
               ...(Platform.OS === 'web' ? ({ mixBlendMode: 'color-dodge' } as object) : {}),
@@ -168,7 +172,7 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
           >
             <LinearGradient
               colors={palette.sheen}
-              locations={[0.3, 0.45, 0.55, 0.7]}
+              locations={[0.37, 0.47, 0.53, 0.63]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={StyleSheet.absoluteFill}
