@@ -10,7 +10,7 @@
 
 import { StyleSheet, useColorScheme, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 
-import { card, holo, neutrals, status } from './palette';
+import { card, glass, holo, neutrals, status } from './palette';
 
 export const fonts = {
   display: 'BarlowCondensed_700Bold',
@@ -42,6 +42,7 @@ export const size = {
   control: 52,      // buttons and inputs
   row: 60,          // list rows
   segment: 40,      // segmented control options
+  tabBar: 64,       // floating tab bar height
   maxContent: 560,  // readable column on web and tablets
 } as const;
 
@@ -55,6 +56,7 @@ function build(mode: 'light' | 'dark') {
       onAction: holo.ink,
     },
     holo: holo.stops,
+    glass: glass[mode],
     statusBar: mode === 'dark' ? ('light' as const) : ('dark' as const),
     space,
     radius,

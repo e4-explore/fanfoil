@@ -4,6 +4,7 @@ import { FlatList, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardTile, useGridSizing } from '@/components/CardGrid';
+import { useTabBarSpace } from '@/components/GlassTabBar';
 import { Button, Loading, Notice, Text } from '@/components/ui';
 import { api } from '@/lib/api';
 import { useAuth } from '@/providers/auth';
@@ -12,6 +13,8 @@ import { makeStyles, useTheme } from '@/theme';
 export default function MyCards() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Room for the floating tab bar so the last cards aren't hidden behind it.
+  const tabBarSpace = useTabBarSpace();
   const styles = useStyles();
   const t = useTheme();
   const { profile } = useAuth();
@@ -29,7 +32,7 @@ export default function MyCards() {
       numColumns={columns}
       keyExtractor={(c) => c.id}
       style={styles.list}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + t.space.lg }]}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + t.space.lg, paddingBottom: tabBarSpace }]}
       columnWrapperStyle={columns > 1 ? { gap } : undefined}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       refreshControl={
@@ -75,7 +78,6 @@ const useStyles = makeStyles((t) => ({
   list: { backgroundColor: t.color.background },
   content: {
     paddingHorizontal: t.space.md,
-    paddingBottom: t.space.xl,
     width: '100%',
     maxWidth: t.size.maxContent + t.space.md * 2,
     alignSelf: 'center',

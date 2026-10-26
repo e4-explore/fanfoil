@@ -1,8 +1,21 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Redirect, Tabs } from 'expo-router';
+import type { ComponentProps } from 'react';
+import type { ColorValue } from 'react-native';
 
+import { GlassTabBar } from '@/components/GlassTabBar';
 import { Loading } from '@/components/ui';
 import { useAuth } from '@/providers/auth';
 import { useTheme } from '@/theme';
+
+type IconName = ComponentProps<typeof Ionicons>['name'];
+type IconProps = { focused: boolean; color: ColorValue; size: number };
+
+// Filled when selected, outlined otherwise (as on iOS).
+function TabIcon({ filled, outline, focused, color, size }: IconProps & { filled: IconName; outline: IconName }) {
+  // GlassTabBar always passes a theme color string.
+  return <Ionicons name={focused ? filled : outline} color={color as string} size={size} />;
+}
 
 export default function TabsLayout() {
   const { session, initializing, profile, profileLoading } = useAuth();
@@ -13,20 +26,15 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: t.color.background },
-        tabBarStyle: { backgroundColor: t.color.sunken, borderTopColor: t.color.border },
-        tabBarActiveTintColor: t.color.accent,
-        tabBarInactiveTintColor: t.color.textMuted,
-        tabBarIconStyle: { display: 'none' },
-        tabBarLabelStyle: t.type.labelSmall,
-        tabBarLabelPosition: 'below-icon',
       }}
     >
-      <Tabs.Screen name="collection" options={{ title: 'My cards' }} />
-      <Tabs.Screen name="inventory" options={{ title: 'All cards' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      <Tabs.Screen name="collection" options={{ title: 'My cards', tabBarIcon: (p: IconProps) => <TabIcon filled="albums" outline="albums-outline" {...p} /> }} />
+      <Tabs.Screen name="inventory" options={{ title: 'All cards', tabBarIcon: (p: IconProps) => <TabIcon filled="grid" outline="grid-outline" {...p} /> }} />
+      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: (p: IconProps) => <TabIcon filled="person-circle" outline="person-circle-outline" {...p} /> }} />
     </Tabs>
   );
 }

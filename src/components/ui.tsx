@@ -71,10 +71,12 @@ export function Screen({
   children,
   scroll = true,
   footer,
+  bottomSpace,
 }: {
   children: ReactNode;
   scroll?: boolean;
   footer?: ReactNode;
+  bottomSpace?: number; // room to leave at the end, e.g. useTabBarSpace() on tab screens
 }) {
   const styles = useStyles();
   const t = useTheme();
@@ -87,7 +89,7 @@ export function Screen({
         // on a row selects it instead of only dismissing the keyboard.
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[styles.scroll, { paddingBottom: t.space.xl + insets.bottom }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: bottomSpace ?? t.space.xl + insets.bottom }]}
         >
           {inner}
         </ScrollView>

@@ -26,6 +26,26 @@ export const neutrals = {
   },
 } as const;
 
+// Floating glass surfaces (tab bar). On iOS 26 the system Liquid Glass
+// material is used and only `selected` applies; elsewhere `fill` sits over a
+// blur (iOS < 26, web) or alone (Android, Reduce Transparency: `solid`).
+export const glass = {
+  light: {
+    fill: 'rgba(255,255,255,0.72)',
+    solid: '#FFFFFF',
+    edge: 'rgba(20,20,19,0.10)',
+    selected: 'rgba(20,20,19,0.07)',
+    shadow: 'rgba(20,20,19,0.18)',
+  },
+  dark: {
+    fill: 'rgba(48,48,46,0.72)',
+    solid: '#30302E',
+    edge: 'rgba(250,249,245,0.14)',
+    selected: 'rgba(250,249,245,0.10)',
+    shadow: 'rgba(0,0,0,0.45)',
+  },
+} as const;
+
 export const status = {
   light: { danger: '#B53333', success: '#2A7247' },
   dark: { danger: '#F28B82', success: '#74D19A' },

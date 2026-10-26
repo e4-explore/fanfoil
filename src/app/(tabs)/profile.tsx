@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import { useTabBarSpace } from '@/components/GlassTabBar';
 import { Button, Field, Loading, Notice, Row, Screen, Text, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import { hasPassword, useAuth } from '@/providers/auth';
@@ -12,6 +13,7 @@ export default function Profile() {
   const { session, profile, refreshProfile, signOut } = useAuth();
   const [name, setName] = useState(profile?.display_name ?? '');
   const styles = useStyles();
+  const tabBarSpace = useTabBarSpace();
 
   useEffect(() => setName(profile?.display_name ?? ''), [profile?.display_name]);
 
@@ -29,7 +31,7 @@ export default function Profile() {
   if (!profile) return <Loading />;
 
   return (
-    <Screen>
+    <Screen bottomSpace={tabBarSpace}>
       <Title>Profile</Title>
       <Text tone="muted" style={styles.email}>{session?.user.email}</Text>
 

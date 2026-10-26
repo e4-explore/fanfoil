@@ -5,6 +5,7 @@ import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardTile, useGridSizing } from '@/components/CardGrid';
+import { useTabBarSpace } from '@/components/GlassTabBar';
 import { Chips, Loading, Notice, Segmented, Spinner, Text } from '@/components/ui';
 import { api } from '@/lib/api';
 import { availability } from '@/lib/collectibles';
@@ -17,6 +18,8 @@ const PAGE_SIZE = 40;
 export default function AllCards() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Room for the floating tab bar so the last cards aren't hidden behind it.
+  const tabBarSpace = useTabBarSpace();
   const styles = useStyles();
   const t = useTheme();
   const { profile } = useAuth();
@@ -56,7 +59,7 @@ export default function AllCards() {
       numColumns={columns}
       keyExtractor={(i) => i.id}
       style={styles.list}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + t.space.lg }]}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + t.space.lg, paddingBottom: tabBarSpace }]}
       columnWrapperStyle={columns > 1 ? { gap } : undefined}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       onEndReachedThreshold={0.6}
@@ -106,7 +109,6 @@ const useStyles = makeStyles((t) => ({
   list: { backgroundColor: t.color.background },
   content: {
     paddingHorizontal: t.space.md,
-    paddingBottom: t.space.xl,
     width: '100%',
     maxWidth: t.size.maxContent + t.space.md * 2,
     alignSelf: 'center',
