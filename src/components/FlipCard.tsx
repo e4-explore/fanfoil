@@ -47,7 +47,7 @@ export function FlipCard({ item, width, revealed }: { item: InventoryItem; width
         importantForAccessibility={revealed ? 'yes' : 'no-hide-descendants'}
         style={[styles.face, { opacity: frontOpacity, transform: [{ perspective: 900 }, { rotateY: frontRotate }] }]}
       >
-        <CollectibleCard item={item} width={width} interactive={false} />
+        <CollectibleCard item={item} width={width} interactive={false} useMotion={revealed} />
       </Animated.View>
     </View>
   );

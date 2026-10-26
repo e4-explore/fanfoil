@@ -1,4 +1,3 @@
-import { DeviceMotion } from 'expo-sensors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -15,6 +14,7 @@ import {
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { CourtLines } from '@/components/CourtLines';
+import { useSharedTilt } from '@/components/sharedTilt';
 import type { InventoryItem } from '@/lib/types';
 import { card, fonts, radius, type CardTier } from '@/theme';
 
@@ -22,16 +22,19 @@ type Props = {
   item: InventoryItem;
   width: number;
   serial?: number;           // shown as "#12 of 1,000" for owned copies
-  interactive?: boolean;     // tilt with pointer / finger
-  useMotion?: boolean;       // tilt with the phone's gyroscope (native only)
+  interactive?: boolean;     // drag to tilt (single-card views; off in grids, where it would fight scrolling)
+  useMotion?: boolean;       // tilt with the phone's gyroscope (native only; shared by all cards on screen)
 };
+// Web hover tilt is always on (unless Reduce Motion is set), so grids shimmer too.
 
 const MAX_TILT = 14; // degrees
+const ZERO = new Animated.Value(0); // stand-in when phone tilt is off
 
 export function HoloCard({ item, width, serial, interactive = true, useMotion = false }: Props) {
   const height = Math.round(width * 1.4);
   const palette = card.foil[item.tier as CardTier] ?? card.foil.role;
-  const tilt = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  // This card's own drag/hover tilt, added to the shared phone tilt.
+  const local = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const [size, setSize] = useState({ w: width, h: height });
   const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -40,12 +43,18 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
   }, []);
 
   const canTilt = interactive && !reduceMotion;
+  const canHover = Platform.OS === 'web' && !reduceMotion;
+  const shared = useSharedTilt(useMotion && !reduceMotion);
+  const tilt = useMemo(
+    () => ({ x: Animated.add(local.x, shared?.x ?? ZERO), y: Animated.add(local.y, shared?.y ?? ZERO) }),
+    [shared, local],
+  );
 
   const moveTo = (x: number, y: number) => {
-    tilt.setValue({ x: clamp(x), y: clamp(y) });
+    local.setValue({ x: clamp(x), y: clamp(y) });
   };
   const settle = () => {
-    Animated.spring(tilt, { toValue: { x: 0, y: 0 }, useNativeDriver: Platform.OS !== 'web', friction: 6 }).start();
+    Animated.spring(local, { toValue: { x: 0, y: 0 }, useNativeDriver: Platform.OS !== 'web', friction: 6 }).start();
   };
 
   // Finger drag (native) and pointer drag (web).
@@ -65,26 +74,9 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
     [canTilt, size.w, size.h],
   );
 
-  // Gyroscope tilt on phones.
-  useEffect(() => {
-    if (!canTilt || !useMotion || Platform.OS === 'web') return;
-    let sub: { remove: () => void } | undefined;
-    DeviceMotion.isAvailableAsync().then((ok) => {
-      if (!ok) return;
-      DeviceMotion.setUpdateInterval(32);
-      sub = DeviceMotion.addListener(({ rotation }) => {
-        if (!rotation) return;
-        // gamma: left/right, beta: front/back (holding upright ≈ 0.6 rad)
-        moveTo(rotation.gamma / 0.6, (rotation.beta - 0.6) / 0.6);
-      });
-    });
-    return () => sub?.remove();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canTilt, useMotion]);
-
-  // Hover tilt on web, no click needed.
+  // Hover tilt on web, no click needed. Works in grids too.
   const webHover =
-    Platform.OS === 'web' && canTilt
+    canHover
       ? {
           onPointerMove: (e: { nativeEvent: { offsetX?: number; offsetY?: number } }) => {
             const { offsetX = 0, offsetY = 0 } = e.nativeEvent;
@@ -96,16 +88,18 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
 
   const onLayout = (e: LayoutChangeEvent) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height });
 
-  const rotateY = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [`-${MAX_TILT}deg`, `${MAX_TILT}deg`] });
-  const rotateX = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [`${MAX_TILT}deg`, `-${MAX_TILT}deg`] });
-  const sheenX = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [-width * 0.9, width * 0.1] });
-  const sheenY = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [-height * 0.5, height * 0.1] });
-  const glareX = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [-width * 0.35, width * 0.85] });
-  const glareY = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [-height * 0.3, height * 0.9] });
+  // Drag/hover plus phone tilt can exceed 1, so every mapping clamps.
+  const clampMode = 'clamp' as const;
+  const rotateY = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [`-${MAX_TILT}deg`, `${MAX_TILT}deg`], extrapolate: clampMode });
+  const rotateX = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [`${MAX_TILT}deg`, `-${MAX_TILT}deg`], extrapolate: clampMode });
+  const sheenX = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [-width * 0.9, width * 0.1], extrapolate: clampMode });
+  const sheenY = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [-height * 0.5, height * 0.1], extrapolate: clampMode });
+  const glareX = tilt.x.interpolate({ inputRange: [-1, 1], outputRange: [-width * 0.35, width * 0.85], extrapolate: clampMode });
+  const glareY = tilt.y.interpolate({ inputRange: [-1, 1], outputRange: [-height * 0.3, height * 0.9], extrapolate: clampMode });
   // Glare only shows while the card is tilted, so resting cards stay clean.
   const glareOpacity = Animated.add(
-    tilt.x.interpolate({ inputRange: [-1, 0, 1], outputRange: [1, 0, 1] }),
-    tilt.y.interpolate({ inputRange: [-1, 0, 1], outputRange: [1, 0, 1] }),
+    tilt.x.interpolate({ inputRange: [-1, 0, 1], outputRange: [1, 0, 1], extrapolate: 'clamp' }),
+    tilt.y.interpolate({ inputRange: [-1, 0, 1], outputRange: [1, 0, 1], extrapolate: 'clamp' }),
   ).interpolate({ inputRange: [0, 0.6], outputRange: [0, 1], extrapolate: 'clamp' });
   const glareSize = width * 0.9;
 

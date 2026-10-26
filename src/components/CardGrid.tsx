@@ -36,7 +36,9 @@ export function CardTile({ entry, width, onPress }: { entry: GridEntry; width: n
       style={({ pressed }) => [{ width }, pressed && styles.pressed]}
     >
       <View>
-        <CollectibleCard item={entry.item} width={width} serial={entry.serial} copy={entry.copy} interactive={false} />
+        {/* Foil follows the phone's tilt (shared by all cards) and web hover; no
+            drag here, so scrolling and tapping work as usual. */}
+        <CollectibleCard item={entry.item} width={width} serial={entry.serial} copy={entry.copy} interactive={false} useMotion />
         {entry.banner ? <CardBanner label={entry.banner} width={width} /> : null}
       </View>
       <View style={styles.caption}>
