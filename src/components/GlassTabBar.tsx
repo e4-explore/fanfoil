@@ -80,7 +80,9 @@ export function GlassTabBar({ state, descriptors, emitter, navigateToTab }: Bott
   const surface = reduceTransparency ? (
     <View style={[StyleSheet.absoluteFill, styles.solid]} />
   ) : liquidGlass ? (
-    <GlassView style={StyleSheet.absoluteFill} glassEffectStyle="regular" colorScheme={t.mode} isInteractive />
+    // Rounded by the glass itself (not clipped), so its rim follows the pill's
+    // curved ends instead of being cut off at them.
+    <GlassView style={styles.glass} glassEffectStyle="regular" colorScheme={t.mode} isInteractive />
   ) : Platform.OS === 'android' ? (
     <View style={[StyleSheet.absoluteFill, styles.fill]} />
   ) : (
@@ -92,10 +94,11 @@ export function GlassTabBar({ state, descriptors, emitter, navigateToTab }: Bott
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom }]}>
-      {/* Outer view casts the shadow; the inner clip rounds the glass (a view
-          that clips can't also show a shadow on iOS). */}
+      {/* Outer view casts the shadow. Liquid Glass rounds itself; the blur and
+          fill surfaces sit in a clip that rounds them (a view that clips can't
+          also show a shadow on iOS). */}
       <View accessibilityRole="tablist" style={styles.bar}>
-        <View style={[styles.clip, !liquidGlass && styles.edge]}>{surface}</View>
+        {liquidGlass && !reduceTransparency ? surface : <View style={[styles.clip, styles.edge]}>{surface}</View>}
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const focused = state.index === index;
@@ -159,6 +162,14 @@ const useStyles = makeStyles((t) => ({
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 8 },
     elevation: 8,
+  },
+  glass: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: t.size.tabBar / 2,
   },
   clip: {
     position: 'absolute',
