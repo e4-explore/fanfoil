@@ -15,7 +15,11 @@ export type Team = {
   logo_url: string | null;
 };
 
-export type Tier = 'role' | 'storyline';
+// Vaulted tiers are value levels of real graded cards; role/storyline are
+// Fanfoil Originals (original art).
+export type Tier = 'vault_starter' | 'vault_mid' | 'vault_premium' | 'vault_grail' | 'role' | 'storyline';
+export type CollectibleKind = 'vaulted' | 'original';
+export type VaultStatus = 'in_vault' | 'redemption_requested' | 'shipped';
 
 // One row of public.collectible_inventory
 export type InventoryItem = {
@@ -37,6 +41,20 @@ export type InventoryItem = {
   total_supply: number;
   claimed_count: number;
   remaining: number;
+  kind: CollectibleKind;
+  // Vaulted cards only (null for Originals)
+  player_name: string | null;
+  card_year: string | null;
+  card_set: string | null;
+  card_number: string | null;
+  grader: string | null;
+  grade: string | null;
+  cert_number: string | null;
+  photo_front_url: string | null;
+  photo_back_url: string | null;
+  est_value_cents: number | null;
+  vault_status: VaultStatus | null;
+  is_sample: boolean;
 };
 
 export type Profile = {

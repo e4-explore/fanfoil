@@ -3,7 +3,7 @@
 
 import { toAppError } from './errors';
 import { supabase } from './supabase';
-import type { InventoryItem, League, Offer, OwnedCollectible, Profile, Team, Tier } from './types';
+import type { CollectibleKind, InventoryItem, League, Offer, OwnedCollectible, Profile, Team } from './types';
 
 async function run<T>(promise: PromiseLike<{ data: T | null; error: unknown }>): Promise<T> {
   const { data, error } = await promise;
@@ -60,17 +60,19 @@ export const api = {
     ),
 
   // Paged so the inventory scales past a single league.
-  inventory: (opts: { teamId?: string; tier?: Tier; page: number; pageSize?: number }) => {
+  // Ranked: rarest tier first, then highest estimated value, then name.
+  inventory: (opts: { teamId?: string; kind?: CollectibleKind; page: number; pageSize?: number }) => {
     const size = opts.pageSize ?? 40;
     let query = supabase
       .from('collectible_inventory')
       .select('*')
       .order('rarity_rank', { ascending: false })
+      .order('est_value_cents', { ascending: false, nullsFirst: false })
       .order('team_name')
       .order('name')
       .range(opts.page * size, opts.page * size + size - 1);
     if (opts.teamId) query = query.eq('team_id', opts.teamId);
-    if (opts.tier) query = query.eq('tier', opts.tier);
+    if (opts.kind) query = query.eq('kind', opts.kind);
     return run<InventoryItem[]>(query);
   },
 

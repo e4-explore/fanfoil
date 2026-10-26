@@ -7,7 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CardTile, useGridSizing } from '@/components/CardGrid';
 import { Loading, Notice, Segmented, Spinner, Text } from '@/components/ui';
 import { api } from '@/lib/api';
-import type { Tier } from '@/lib/types';
+import { availability } from '@/lib/collectibles';
+import type { CollectibleKind } from '@/lib/types';
 import { useAuth } from '@/providers/auth';
 import { makeStyles, useTheme } from '@/theme';
 
@@ -23,13 +24,13 @@ export default function AllCards() {
   const { profile } = useAuth();
   const { columns, gap, cardWidth } = useGridSizing();
   const [scope, setScope] = useState<Scope>('team');
-  const [tier, setTier] = useState<Tier | undefined>(undefined);
+  const [kind, setKind] = useState<CollectibleKind | undefined>(undefined);
 
   const teamId = scope === 'team' ? profile?.followed_team_id ?? undefined : undefined;
 
   const inventory = useInfiniteQuery({
-    queryKey: ['inventory', teamId ?? 'all', tier ?? 'all'],
-    queryFn: ({ pageParam }) => api.inventory({ teamId, tier, page: pageParam, pageSize: PAGE_SIZE }),
+    queryKey: ['inventory', teamId ?? 'all', kind ?? 'all'],
+    queryFn: ({ pageParam }) => api.inventory({ teamId, kind, page: pageParam, pageSize: PAGE_SIZE }),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => (last.length === PAGE_SIZE ? pages.length : undefined),
   });
@@ -56,7 +57,7 @@ export default function AllCards() {
         <View style={styles.header}>
           <Text accessibilityRole="header" variant="title">All cards</Text>
           <Text tone="muted" style={styles.intro}>
-            Every card in the set and how many are left. Fewer copies means rarer.
+            Every card, rarest first. Vaulted cards are real graded cards, one of each. Originals are limited original art.
           </Text>
           <Segmented
             label="Teams"
@@ -69,12 +70,12 @@ export default function AllCards() {
           />
           <Segmented
             label="Card type"
-            value={tier ?? 'any'}
-            onChange={(v) => setTier(v === 'any' ? undefined : (v as Tier))}
+            value={kind ?? 'any'}
+            onChange={(v) => setKind(v === 'any' ? undefined : v)}
             options={[
-              { value: 'any', label: 'All types' },
-              { value: 'role', label: 'Roles' },
-              { value: 'storyline', label: 'Storylines' },
+              { value: 'any', label: 'All' },
+              { value: 'vaulted', label: 'Vaulted' },
+              { value: 'original', label: 'Originals' },
             ]}
           />
           {inventory.error ? <Notice tone="error" text={inventory.error.message} /> : null}
@@ -88,10 +89,7 @@ export default function AllCards() {
           entry={{
             key: item.id,
             item,
-            caption:
-              item.remaining === 0
-                ? 'All claimed'
-                : `${item.remaining.toLocaleString('en-US')} of ${item.total_supply.toLocaleString('en-US')} left`,
+            caption: availability(item),
             badge: owned.has(item.id) ? <Text variant="smallStrong" tone="success">Yours</Text> : null,
           }}
           onPress={() => router.push({ pathname: '/card/[id]', params: { id: item.id } })}

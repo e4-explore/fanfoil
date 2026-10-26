@@ -53,6 +53,19 @@ export const card = {
     weave: 'rgba(255,255,255,0.06)',
     mark: '#B9A6FF',
   },
+  // Vaulted cards: a plain frame around the unedited slab photo. The label is
+  // Fanfoil's own neutral design (not any grader's label colors).
+  slab: {
+    shell: '#E6E7EC',
+    edge: '#BFC2CC',
+    label: '#FFFFFF',
+    labelInk: '#141413',
+    labelMuted: '#5E5D59',
+    window: '#2A2B30',
+    windowInk: '#B8B5A9',
+    sample: '#FFD68A',
+    sampleInk: '#141413',
+  },
   foil: {
     role: {
       stock: '#DCDDEA',

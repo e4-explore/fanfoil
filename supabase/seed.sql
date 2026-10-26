@@ -1,24 +1,40 @@
 -- =============================================================================
 -- Seed: NBA inventory for the 2026-27 season.
 --
--- Team names are used only to identify teams in the picker. No logos, no
--- player names, no likenesses. Cards are original archetypes ("roles") and
--- team moments ("storylines").
+-- Team names identify teams in the picker. No logos anywhere in the app.
 --
--- Supply per card (edition size) drives rarity:
---   role       1,000 copies per team  (8 roles x 30 teams)
---   storyline    100 copies per team  (4 storylines x 30 teams)
+-- Two kinds of collectible (see migrations/*_vaulted_cards.sql):
+--   vaulted   real graded cards, one row per physical card (supply 1). Player
+--             and set names describe that specific item. Real cards replace
+--             the sample rows in seeds/sample_vaulted_cards.sql.
+--   original  Fanfoil Originals: original art, deliberately scarce.
+--               role       50 copies per team  (8 roles x 30 teams)
+--               storyline  10 copies per team  (4 storylines x 30 teams)
+--
+-- Rarity rank (1 = most common): vaulted tiers by value, then originals.
 -- =============================================================================
 
-insert into public.collectible_tiers (slug, name, description, rarity_rank, default_supply) values
-  ('role',      'Role',      'A position on the roster. The foundation of every collection.',      1, 1000),
-  ('storyline', 'Storyline', 'A big moment that takes the whole rotation. Rarer and harder to land.', 2, 100);
+insert into public.collectible_tiers (slug, name, description, kind, rarity_rank, default_supply) values
+  ('vault_starter', 'Starter', 'A real graded card from the vault. Where most collections begin.', 'vaulted', 1, 1),
+  ('vault_mid',     'Mid',     'A real graded card with more value behind it.',                    'vaulted', 2, 1),
+  ('vault_premium', 'Premium', 'A high-value graded card. Rare to land.',                          'vaulted', 3, 1),
+  ('vault_grail',   'Grail',   'The top of the vault.',                                            'vaulted', 4, 1),
+  ('role',      'Role',      'A Fanfoil Original. Original art, only 50 of each.',                 'original', 5, 50),
+  ('storyline', 'Storyline', 'A Fanfoil Original moment. Original art, only 10 of each.',          'original', 6, 10);
 
--- Onboarding offers roles only for now. Raise the storyline multiplier (e.g.
--- to 1) to "sprinkle" storylines into the first claim without a code change.
+-- The free first claim draws real vaulted cards from the fan's team. Weight
+-- = copies left x multiplier, so with one copy each a Mid card is 1/10 as
+-- likely as a Starter. Premium, Grail and Originals are kept out of the free
+-- pool (0) to cap what each sign-up costs. Change these rows, not code.
+-- The claim is free (no purchase), so it isn't a lottery; any paid pack later
+-- needs a free entry route with identical odds.
 insert into public.offer_rules (source, tier, weight_multiplier) values
-  ('onboarding', 'role',      1),
-  ('onboarding', 'storyline', 0);
+  ('onboarding', 'vault_starter', 1),
+  ('onboarding', 'vault_mid',     0.1),
+  ('onboarding', 'vault_premium', 0),
+  ('onboarding', 'vault_grail',   0),
+  ('onboarding', 'role',          0),
+  ('onboarding', 'storyline',     0);
 
 insert into public.sports (slug, name, sort_order) values ('basketball', 'Basketball', 1);
 
@@ -78,13 +94,13 @@ cross join (values
 ) as t (slug, location, nickname, abbr, conf)
 where l.slug = 'nba';
 
--- Roles: original archetypes, one set per team.
+-- Fanfoil Originals - roles: original archetypes, one set per team.
 insert into public.collectibles
   (slug, tier, name, subtitle, description, league_id, team_id, season, total_supply, art, attributes)
 select
   'nba-' || tm.slug || '-' || r.slug || '-2026',
   'role', r.name, r.subtitle, r.description,
-  tm.league_id, tm.id, '2026-27', 1000,
+  tm.league_id, tm.id, '2026-27', 50,
   jsonb_build_object('glyph', r.glyph),
   jsonb_build_object('archetype', r.slug)
 from public.teams tm
@@ -99,13 +115,13 @@ cross join (values
   ('rookie-spark',  'Rookie Spark',  'Writing the first chapter','New legs, no fear. The story is just starting.',                                     'RS')
 ) as r (slug, name, subtitle, description, glyph);
 
--- Storylines: rarer team moments that involve several roles at once.
+-- Fanfoil Originals - storylines: team moments that involve several roles at once.
 insert into public.collectibles
   (slug, tier, name, subtitle, description, league_id, team_id, season, total_supply, art, attributes)
 select
   'nba-' || tm.slug || '-' || s.slug || '-2026',
   'storyline', s.name, s.subtitle, s.description,
-  tm.league_id, tm.id, '2026-27', 100,
+  tm.league_id, tm.id, '2026-27', 10,
   jsonb_build_object('glyph', s.glyph),
   jsonb_build_object('storyline', s.slug, 'roles', s.roles)
 from public.teams tm

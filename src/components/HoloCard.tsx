@@ -16,7 +16,7 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { CourtLines } from '@/components/CourtLines';
 import type { InventoryItem } from '@/lib/types';
-import { card, fonts, radius } from '@/theme';
+import { card, fonts, radius, type CardTier } from '@/theme';
 
 type Props = {
   item: InventoryItem;
@@ -30,7 +30,7 @@ const MAX_TILT = 14; // degrees
 
 export function HoloCard({ item, width, serial, interactive = true, useMotion = false }: Props) {
   const height = Math.round(width * 1.4);
-  const palette = card.foil[item.tier] ?? card.foil.role;
+  const palette = card.foil[item.tier as CardTier] ?? card.foil.role;
   const tilt = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const [size, setSize] = useState({ w: width, h: height });
   const [reduceMotion, setReduceMotion] = useState(false);

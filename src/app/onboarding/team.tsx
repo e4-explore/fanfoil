@@ -83,7 +83,7 @@ export default function PickTeam() {
       <Lede>
         {switching
           ? 'Your cards will follow your new team from here.'
-          : 'This is the team you’ll follow this season. Your first cards come from its roster roles.'}
+          : 'This is the team you’ll follow this season. Your first card comes from its current roster.'}
       </Lede>
       {switching && alreadyClaimed ? (
         <Notice text="Switching doesn’t give you another first card. Everything you’ve claimed stays in your collection." />

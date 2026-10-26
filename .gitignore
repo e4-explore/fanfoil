@@ -43,3 +43,6 @@ yarn-error.*
 # local env (keys)
 .env
 .env*.local
+
+# private strategy and planning docs (local only, never pushed)
+/docs/private/

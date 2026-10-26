@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 
-import { HoloCard } from '@/components/HoloCard';
+import { CollectibleCard } from '@/components/CollectibleCard';
 import { Text } from '@/components/ui';
 import type { InventoryItem } from '@/lib/types';
 import { makeStyles, size, space } from '@/theme';
@@ -26,7 +26,7 @@ export function CardTile({ entry, width, onPress }: { entry: GridEntry; width: n
       onPress={onPress}
       style={({ pressed }) => [{ width }, pressed && styles.pressed]}
     >
-      <HoloCard item={entry.item} width={width} serial={entry.serial} interactive={false} />
+      <CollectibleCard item={entry.item} width={width} serial={entry.serial} interactive={false} />
       <View style={styles.caption}>
         {entry.caption ? <Text variant="small" tone="muted">{entry.caption}</Text> : null}
         {entry.badge}

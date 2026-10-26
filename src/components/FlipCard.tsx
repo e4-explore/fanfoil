@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Platform, StyleSheet, View } from 'react-native';
 
 import { CardBack } from '@/components/CardBack';
-import { HoloCard } from '@/components/HoloCard';
+import { CollectibleCard } from '@/components/CollectibleCard';
 import type { InventoryItem } from '@/lib/types';
 
 // A card that starts face-down and flips over when `revealed` turns true.
@@ -47,7 +47,7 @@ export function FlipCard({ item, width, revealed }: { item: InventoryItem; width
         importantForAccessibility={revealed ? 'yes' : 'no-hide-descendants'}
         style={[styles.face, { opacity: frontOpacity, transform: [{ perspective: 900 }, { rotateY: frontRotate }] }]}
       >
-        <HoloCard item={item} width={width} interactive={false} />
+        <CollectibleCard item={item} width={width} interactive={false} />
       </Animated.View>
     </View>
   );

@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 
 import { FlipCard } from '@/components/FlipCard';
-import { HoloCard } from '@/components/HoloCard';
+import { CollectibleCard } from '@/components/CollectibleCard';
 import { BackButton, Button, Lede, Loading, Notice, Screen, Text, Title } from '@/components/ui';
 import { api } from '@/lib/api';
+import { availability, cardFacts, ownership } from '@/lib/collectibles';
 import { AppError } from '@/lib/errors';
 import type { InventoryItem } from '@/lib/types';
 import { useAuth } from '@/providers/auth';
@@ -85,13 +86,15 @@ export default function ClaimFirstCard() {
         }
       >
         <Title>It’s yours</Title>
-        <Lede>
-          {`${claimed.item.name}, number ${claimed.serial.toLocaleString('en-US')} of ${claimed.item.total_supply.toLocaleString('en-US')}. No one else will ever hold this number.`}
-        </Lede>
+        <Lede>{[claimed.item.name, ownership(claimed.item, claimed.serial)].filter(Boolean).join('. ')}</Lede>
         <View style={styles.hero}>
-          <HoloCard item={claimed.item} width={big} serial={claimed.serial} useMotion />
+          <CollectibleCard item={claimed.item} width={big} serial={claimed.serial} useMotion />
         </View>
-        <Text variant="small" tone="muted" align="center">Tilt your phone or drag the card to see the foil.</Text>
+        {claimed.item.kind === 'original' ? (
+          <Text variant="small" tone="muted" align="center">
+            Tilt your phone or drag the card to see the foil.
+          </Text>
+        ) : null}
       </Screen>
     );
   }
@@ -145,7 +148,14 @@ export default function ClaimFirstCard() {
     >
       <BackButton onPress={goBack} />
       <Title>Your first card</Title>
-      <Lede>Three roles from your team’s roster. Reveal them, then keep one. You only get to pick once.</Lede>
+      <Lede>
+        {options.every((o) => o.kind === 'vaulted')
+          ? 'Three real graded cards from your team’s roster, held in the vault. Reveal them, then keep one. You only get to pick once.'
+          : 'Three cards from your team’s roster. Reveal them, then keep one. You only get to pick once.'}
+      </Lede>
+      {options.some((o) => o.is_sample) ? (
+        <Notice text="These are sample cards for testing. Real graded cards replace them before launch." />
+      ) : null}
       {notice ? <Notice text={notice} /> : null}
 
       <View style={[styles.spread, { gap }]}>
@@ -170,9 +180,11 @@ export default function ClaimFirstCard() {
       {selected ? (
         <View style={styles.detail}>
           <Text variant="heading">{selected.name}</Text>
-          <Text style={styles.description}>{selected.description}</Text>
+          <Text style={styles.description}>
+            {selected.kind === 'vaulted' ? `${cardFacts(selected)}. ${selected.tier_name} tier.` : selected.description}
+          </Text>
           <Text variant="small" tone="muted" style={styles.remaining}>
-            {`${selected.remaining.toLocaleString('en-US')} of ${selected.total_supply.toLocaleString('en-US')} still unclaimed`}
+            {availability(selected)}
           </Text>
         </View>
       ) : allRevealed ? (
