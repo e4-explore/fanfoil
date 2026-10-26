@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -16,6 +16,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-native-svg';
 
 import { HoloSurface, useHoloPointer } from '@/components/HoloSurface';
 import { makeStyles, radius, size, useTheme, type Theme, type TypeVariant } from '@/theme';
@@ -122,6 +123,51 @@ export function HoloFill() {
 // Controls
 // ---------------------------------------------------------------------------
 
+type PressState = { pressed: boolean; focused?: boolean };
+
+// Controls draw FocusRing themselves; this turns off the browser's own focus
+// outline on web so the two don't stack.
+export const noBrowserOutline = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as unknown as ViewStyle; // 'none' is web-only, so not in RN's types
+
+// Keyboard focus on any control: the holographic gradient as an outline just
+// outside the control (same language as the selected state). Drawn as an SVG
+// stroke so it's a true outline, transparent inside.
+export function FocusRing({ radius: r, offset = 3 }: { radius: number; offset?: number }) {
+  const t = useTheme();
+  const id = `focus${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const [box, setBox] = useState<{ width: number; height: number } | null>(null);
+  const stroke = 2;
+  return (
+    <View
+      pointerEvents="none"
+      style={{ position: 'absolute', top: -offset, right: -offset, bottom: -offset, left: -offset }}
+      onLayout={(e) => setBox(e.nativeEvent.layout)}
+    >
+      {box ? (
+        <Svg width={box.width} height={box.height}>
+          <Defs>
+            <SvgGradient id={id} x1="0" y1="0" x2="1" y2="1">
+              {t.holo.map((color, i) => (
+                <Stop key={color} offset={i / (t.holo.length - 1)} stopColor={color} />
+              ))}
+            </SvgGradient>
+          </Defs>
+          <Rect
+            x={stroke / 2}
+            y={stroke / 2}
+            width={box.width - stroke}
+            height={box.height - stroke}
+            rx={r + offset - stroke / 2}
+            fill="none"
+            stroke={`url(#${id})`}
+            strokeWidth={stroke}
+          />
+        </Svg>
+      ) : null}
+    </View>
+  );
+}
+
 // Top-left of a screen, above the title.
 export function BackButton({
   onPress,
@@ -141,14 +187,14 @@ export function BackButton({
       onPress={onPress}
       disabled={disabled}
       hitSlop={8}
-      style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
-        styles.back,
-        pressed && styles.pressed,
-        disabled && styles.disabled,
-        focused && styles.focused,
-      ]}
+      style={({ pressed }: PressState) => [styles.back, noBrowserOutline, pressed && styles.pressed, disabled && styles.disabled]}
     >
-      <Text variant="label" tone="muted">{`‹ ${label}`}</Text>
+      {({ focused }: PressState) => (
+        <>
+          {focused ? <FocusRing radius={radius.sm} /> : null}
+          <Text variant="label" tone="muted">{`‹ ${label}`}</Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -188,24 +234,29 @@ export function Button({
       onPress={onPress}
       disabled={isDisabled}
       {...(primary && !isDisabled ? handlers : primary ? { onLayout: handlers.onLayout } : {})}
-      style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
+      style={({ pressed }: PressState) => [
         styles.button,
+        noBrowserOutline,
         variant === 'secondary' && styles.secondary,
         variant === 'quiet' && styles.quiet,
         inline && styles.inline,
         pressed && !primary && styles.pressed,
         disabled && styles.disabled,
-        focused && styles.focused,
         style,
       ]}
     >
-      {primary ? <HoloSurface {...surface} /> : null}
-      {loading ? (
-        <ActivityIndicator color={spinner} />
-      ) : (
-        <Text variant="label" tone={tone}>
-          {label}
-        </Text>
+      {({ focused }: PressState) => (
+        <>
+          {primary ? <HoloSurface {...surface} /> : null}
+          {focused ? <FocusRing radius={radius.md} /> : null}
+          {loading ? (
+            <ActivityIndicator color={spinner} />
+          ) : (
+            <Text variant="label" tone={tone}>
+              {label}
+            </Text>
+          )}
+        </>
       )}
     </Pressable>
   );
@@ -215,18 +266,20 @@ export function Field(props: TextInputProps & { label: string }) {
   const { label, style, onFocus, onBlur, ...rest } = props;
   const styles = useStyles();
   const t = useTheme();
-  // Our own focus style (accent border) on every platform, instead of the
-  // browser's default ring on web and nothing on native.
+  // Our own focus ring on every platform, instead of the browser's default
+  // outline on web and nothing on native.
   const [focused, setFocused] = useState(false);
   return (
     <View style={styles.field}>
       <Text variant="small" tone="muted">
         {label}
       </Text>
-      <TextInput
+      <View>
+        {focused ? <FocusRing radius={radius.md} /> : null}
+        <TextInput
         placeholderTextColor={t.color.textMuted}
         selectionColor={t.color.accent}
-        style={[styles.input, focused && styles.inputFocused, style]}
+        style={[styles.input, style]}
         accessibilityLabel={label}
         onFocus={(e) => {
           setFocused(true);
@@ -236,8 +289,9 @@ export function Field(props: TextInputProps & { label: string }) {
           setFocused(false);
           onBlur?.(e);
         }}
-        {...rest}
-      />
+          {...rest}
+        />
+      </View>
     </View>
   );
 }
@@ -266,16 +320,19 @@ export function Row({
       accessibilityState={{ selected: !!selected, disabled: !!disabled }}
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
+      style={({ pressed }: PressState) => [
         styles.row,
+        noBrowserOutline,
         disabled && styles.rowDisabled,
         selected && styles.rowSelected,
         pressed && styles.rowPressed,
-        // The selected border already marks it; don't stack a second ring.
-        focused && !selected && styles.focused,
       ]}
     >
+      {({ focused }: PressState) => (
+        <>
       {selected ? <SelectionRing radius={radius.md} border={1} /> : null}
+      {/* The selection ring already marks it; don't stack a second ring. */}
+      {focused && !selected ? <FocusRing radius={radius.md} /> : null}
       {leading}
       <View style={styles.fill}>
         <Text variant="bodyStrong" tone={disabled ? 'muted' : 'default'}>
@@ -288,6 +345,8 @@ export function Row({
         ) : null}
       </View>
       {trailing}
+        </>
+      )}
     </Pressable>
   );
 }
@@ -322,16 +381,17 @@ export function Chips<T extends string>({
             accessibilityRole="radio"
             accessibilityState={{ checked: active }}
             onPress={() => onChange(o.value)}
-            style={({ focused }: { pressed: boolean; focused?: boolean }) => [
-              styles.chip,
-              active && styles.chipActive,
-              // The holo fill already marks the active chip; no second ring.
-              focused && !active && styles.focused,
-            ]}
+            style={[styles.chip, noBrowserOutline, active && styles.chipActive]}
           >
-            {active ? <SelectionRing radius={size.segment / 2} border={1} /> : null}
-            {o.icon}
-            <Text variant="labelSmall">{o.label}</Text>
+            {({ focused }: PressState) => (
+              <>
+                {active ? <SelectionRing radius={size.segment / 2} border={1} /> : null}
+                {/* The selection ring already marks it; no second ring. */}
+                {focused && !active ? <FocusRing radius={size.segment / 2} offset={4} /> : null}
+                {o.icon}
+                <Text variant="labelSmall">{o.label}</Text>
+              </>
+            )}
           </Pressable>
         );
       })}
@@ -402,15 +462,15 @@ export function Segmented<T extends string>({
             accessibilityRole="radio"
             accessibilityState={{ checked: active }}
             onPress={() => onChange(o.value)}
-            style={({ focused }: { pressed: boolean; focused?: boolean }) => [
-              styles.segment,
-              focused && styles.focused,
-            ]}
+            style={[styles.segment, noBrowserOutline]}
           >
-            {active ? <SelectionRing radius={size.segment / 2} /> : null}
-            <Text variant="labelSmall">
-              {o.label}
-            </Text>
+            {({ focused }: PressState) => (
+              <>
+                {active ? <SelectionRing radius={size.segment / 2} /> : null}
+                {focused ? <FocusRing radius={size.segment / 2} /> : null}
+                <Text variant="labelSmall">{o.label}</Text>
+              </>
+            )}
           </Pressable>
         );
       })}
@@ -476,7 +536,6 @@ const useStyles = makeStyles((t) => ({
     paddingHorizontal: t.space.lg,
     width: '100%',
     maxWidth: t.size.maxContent,
-    overflow: 'hidden',
   },
   secondary: { backgroundColor: t.color.accent },
   quiet: { backgroundColor: t.color.surface, borderWidth: 1, borderColor: t.color.border },
@@ -484,7 +543,6 @@ const useStyles = makeStyles((t) => ({
   inline: { alignSelf: 'flex-start', width: 'auto' },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },
-  focused: { outlineColor: t.color.accent, outlineWidth: 2, outlineStyle: 'solid', outlineOffset: 2 } as ViewStyle,
   field: { marginTop: t.space.md },
   input: {
     ...t.type.body,
@@ -497,11 +555,9 @@ const useStyles = makeStyles((t) => ({
     paddingHorizontal: t.space.md,
     color: t.color.text,
     fontSize: t.type.label.fontSize,
-    // Web only: drop the browser's focus ring; inputFocused draws ours.
+    // Web only: drop the browser's focus outline; FocusRing draws ours.
     ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
-  // Border grows 1 -> 2, so padding shrinks by 1 to keep the text still.
-  inputFocused: { borderColor: t.color.accent, borderWidth: 2, paddingHorizontal: t.space.md - 1 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -522,7 +578,8 @@ const useStyles = makeStyles((t) => ({
   rowDisabled: { backgroundColor: t.color.sunken, borderColor: 'transparent', opacity: 0.6 },
   // Bleeds to the screen edges so chips scroll under the gutter.
   chipsScroll: { marginTop: t.space.md, marginHorizontal: -t.space.md },
-  chips: { gap: t.space.sm, paddingHorizontal: t.space.md },
+  // Vertical room so a focused chip's ring isn't clipped by the scroll view.
+  chips: { gap: t.space.sm, paddingHorizontal: t.space.md, paddingVertical: t.space.xs },
   chip: {
     flexDirection: 'row',
     gap: t.space.xs + t.space.xxs,
@@ -534,7 +591,6 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: t.color.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
   chipActive: { borderColor: 'transparent' },
   ringOuter: { position: 'absolute', overflow: 'hidden' },

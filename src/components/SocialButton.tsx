@@ -2,8 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { Text } from '@/components/ui';
-import { makeStyles, useTheme } from '@/theme';
+import { FocusRing, noBrowserOutline, Text } from '@/components/ui';
+import { makeStyles, radius, useTheme } from '@/theme';
 
 // "Continue with Google / Apple": the high-contrast buttons on the sign-in
 // screen. Black in light mode, white in dark mode (Google's dark/light button
@@ -36,22 +36,22 @@ export function SocialButton({
       accessibilityState={{ busy: !!loading, disabled: !!loading }}
       disabled={loading}
       onPress={onPress}
-      style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
-        styles.button,
-        pressed && styles.pressed,
-        focused && styles.focused,
-        style,
-      ]}
+      style={({ pressed }: { pressed: boolean }) => [styles.button, noBrowserOutline, pressed && styles.pressed, style]}
     >
-      {loading ? (
-        <ActivityIndicator color={t.social.ink} />
-      ) : (
-        <View style={styles.content}>
-          {provider === 'google' ? <GoogleG onDark={t.mode === 'light'} /> : <Ionicons name="logo-apple" size={LOGO} color={t.social.ink} />}
-          <Text variant="label" style={styles.label}>
-            {LABEL[provider]}
-          </Text>
-        </View>
+      {({ focused }: { pressed: boolean; focused?: boolean }) => (
+        <>
+          {focused ? <FocusRing radius={radius.md} /> : null}
+          {loading ? (
+            <ActivityIndicator color={t.social.ink} />
+          ) : (
+            <View style={styles.content}>
+              {provider === 'google' ? <GoogleG onDark={t.mode === 'light'} /> : <Ionicons name="logo-apple" size={LOGO} color={t.social.ink} />}
+              <Text variant="label" style={styles.label}>
+                {LABEL[provider]}
+              </Text>
+            </View>
+          )}
+        </>
       )}
     </Pressable>
   );
@@ -96,5 +96,4 @@ const useStyles = makeStyles((t) => ({
     justifyContent: 'center',
   },
   pressed: { opacity: 0.85 },
-  focused: { outlineColor: t.color.accent, outlineWidth: 2, outlineStyle: 'solid', outlineOffset: 2 } as object,
 }));

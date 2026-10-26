@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Text } from '@/components/ui';
+import { FocusRing, noBrowserOutline, Text } from '@/components/ui';
 import { makeStyles, size, space, useTheme } from '@/theme';
 
 // A floating, glassy tab bar in the style of Apple's Liquid Glass.
@@ -121,17 +121,17 @@ export function GlassTabBar({ state, descriptors, emitter, navigateToTab }: Bott
               accessibilityLabel={options.tabBarAccessibilityLabel ?? label}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={({ pressed, focused: keyboardFocus }: { pressed: boolean; focused?: boolean }) => [
-                styles.item,
-                focused && styles.itemSelected,
-                pressed && styles.pressed,
-                keyboardFocus && styles.focusRing,
-              ]}
+              style={({ pressed }: { pressed: boolean }) => [styles.item, noBrowserOutline, focused && styles.itemSelected, pressed && styles.pressed]}
             >
-              {options.tabBarIcon?.({ focused, color, size: 22 })}
-              <Text variant="smallStrong" style={{ color }} numberOfLines={1}>
-                {label}
-              </Text>
+              {({ focused: keyboardFocus }: { pressed: boolean; focused?: boolean }) => (
+                <>
+                  {keyboardFocus ? <FocusRing radius={(size.tabBar - space.xs * 2) / 2} offset={0} /> : null}
+                  {options.tabBarIcon?.({ focused, color, size: 22 })}
+                  <Text variant="smallStrong" style={{ color }} numberOfLines={1}>
+                    {label}
+                  </Text>
+                </>
+              )}
             </Pressable>
           );
         })}
@@ -193,5 +193,4 @@ const useStyles = makeStyles((t) => ({
   },
   itemSelected: { backgroundColor: t.glass.selected },
   pressed: { opacity: 0.7 },
-  focusRing: { borderWidth: 2, borderColor: t.color.accent },
 }));

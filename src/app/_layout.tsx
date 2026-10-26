@@ -1,9 +1,5 @@
 import { Barlow_400Regular, Barlow_500Medium, Barlow_600SemiBold } from '@expo-google-fonts/barlow';
-import {
-  BarlowCondensed_700Bold,
-  BarlowCondensed_700Bold_Italic,
-  BarlowCondensed_800ExtraBold,
-} from '@expo-google-fonts/barlow-condensed';
+import { BarlowCondensed_700Bold, BarlowCondensed_800ExtraBold } from '@expo-google-fonts/barlow-condensed';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -25,7 +21,6 @@ export default function RootLayout() {
     Barlow_500Medium,
     Barlow_600SemiBold,
     BarlowCondensed_700Bold,
-    BarlowCondensed_700Bold_Italic,
     BarlowCondensed_800ExtraBold,
   });
 

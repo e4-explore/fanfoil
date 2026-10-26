@@ -14,8 +14,7 @@ import { StyleSheet, useColorScheme, type ImageStyle, type TextStyle, type ViewS
 import { card, glass, holo, neutrals, social, status } from './palette';
 
 export const fonts = {
-  display: 'BarlowCondensed_700Bold',
-  displayItalic: 'BarlowCondensed_700Bold_Italic', // screen titles
+  display: 'BarlowCondensed_700Bold', // titles and headings
   displayHeavy: 'BarlowCondensed_800ExtraBold', // card art
   body: 'Barlow_400Regular',
   bodyMedium: 'Barlow_500Medium',
@@ -24,7 +23,7 @@ export const fonts = {
 
 // The only text styles in the app. Color is applied separately (see <Text tone>).
 export const type = {
-  title: { fontFamily: fonts.displayItalic, fontSize: 40, lineHeight: 42 },
+  title: { fontFamily: fonts.display, fontSize: 40, lineHeight: 42 },
   heading: { fontFamily: fonts.display, fontSize: 26, lineHeight: 30 },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24 },
   bodyStrong: { fontFamily: fonts.bodyBold, fontSize: 16, lineHeight: 24 },

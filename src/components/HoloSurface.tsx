@@ -75,7 +75,8 @@ export function HoloSurface({ pos, glow, width }: { pos: Animated.Value; glow: A
   const sheenOpacity = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.9] });
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    // Rounds itself, so the button doesn't clip (its focus ring sits outside).
+    <View style={[StyleSheet.absoluteFill, styles.clip]} pointerEvents="none">
       <Animated.View style={[styles.slider, { width: width * 2, transform: [{ translateX: slide }] }]}>
         <LinearGradient colors={loop} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.6 }} style={StyleSheet.absoluteFill} />
       </Animated.View>
@@ -107,7 +108,8 @@ export function HoloSurface({ pos, glow, width }: { pos: Animated.Value; glow: A
   );
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((t) => ({
+  clip: { borderRadius: t.radius.md, overflow: 'hidden' },
   slider: { position: 'absolute', top: 0, bottom: 0, left: 0 },
   sheen: { position: 'absolute', top: 0, bottom: 0, left: 0 },
 }));
