@@ -71,6 +71,10 @@ export default function Profile() {
       ) : null}
 
       <Button label="Sign out" variant="quiet" style={styles.section} onPress={signOut} />
+
+      {__DEV__ ? (
+        <Row title="Style guide" detail="Development only: tokens and every component" onPress={() => router.push('/styleguide')} />
+      ) : null}
     </Screen>
   );
 }

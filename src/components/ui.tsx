@@ -17,14 +17,15 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { makeStyles, useTheme, type Theme, type TypeVariant } from '@/theme';
+import { HoloSurface, useHoloPointer } from '@/components/HoloSurface';
+import { makeStyles, radius, size, useTheme, type Theme, type TypeVariant } from '@/theme';
 
 // ---------------------------------------------------------------------------
 // Text: the only way screens render text. Pick a variant from the type scale
 // and a tone; no font sizes or colors at the call site.
 // ---------------------------------------------------------------------------
 
-type Tone = 'default' | 'muted' | 'danger' | 'success' | 'onAction';
+type Tone = 'default' | 'muted' | 'danger' | 'success' | 'accent' | 'onAction' | 'onAccent';
 
 const toneColor = (t: Theme, tone: Tone) =>
   ({
@@ -32,7 +33,9 @@ const toneColor = (t: Theme, tone: Tone) =>
     muted: t.color.textMuted,
     danger: t.color.danger,
     success: t.color.success,
-    onAction: t.color.onAction,
+    accent: t.color.accent,
+    onAction: t.color.onAction, // on the holographic surface
+    onAccent: t.color.onAccent, // on a solid accent fill
   })[tone];
 
 export function Text({
@@ -167,34 +170,40 @@ export function Button({
   inline?: boolean; // hug the label (left-aligned links like "Show password")
   style?: StyleProp<ViewStyle>;
 }) {
+  // primary    holographic, textured; colors and sheen follow hover / tap
+  // secondary  solid accent
+  // quiet      outlined surface
+  // Disabled: the same look at 40% opacity.
   const styles = useStyles();
   const t = useTheme();
   const isDisabled = disabled || loading;
-  const holo = variant === 'primary' && !disabled;
-  const tone: Tone = holo ? 'onAction' : variant === 'primary' && disabled ? 'muted' : 'default';
+  const primary = variant === 'primary';
+  const { handlers, surface } = useHoloPointer();
+  const tone: Tone = primary ? 'onAction' : variant === 'secondary' ? 'onAccent' : 'default';
+  const spinner = primary ? t.color.onAction : variant === 'secondary' ? t.color.onAccent : t.color.text;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled: !!isDisabled, busy: !!loading }}
       onPress={onPress}
       disabled={isDisabled}
+      {...(primary && !isDisabled ? handlers : primary ? { onLayout: handlers.onLayout } : {})}
       style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
         styles.button,
-        variant === 'primary' && (holo ? styles.primary : styles.secondary),
         variant === 'secondary' && styles.secondary,
         variant === 'quiet' && styles.quiet,
         inline && styles.inline,
-        pressed && styles.pressed,
-        isDisabled && variant !== 'primary' && styles.disabled,
+        pressed && !primary && styles.pressed,
+        disabled && styles.disabled,
         focused && styles.focused,
         style,
       ]}
     >
-      {holo ? <HoloFill /> : null}
+      {primary ? <HoloSurface {...surface} /> : null}
       {loading ? (
-        <ActivityIndicator color={holo ? t.color.onAction : t.color.text} />
+        <ActivityIndicator color={spinner} />
       ) : (
-        <Text variant={variant === 'quiet' ? 'labelSmall' : 'label'} tone={tone}>
+        <Text variant="label" tone={tone}>
           {label}
         </Text>
       )}
@@ -266,6 +275,7 @@ export function Row({
         focused && !selected && styles.focused,
       ]}
     >
+      {selected ? <SelectionRing radius={radius.md} border={1} /> : null}
       {leading}
       <View style={styles.fill}>
         <Text variant="bodyStrong" tone={disabled ? 'muted' : 'default'}>
@@ -319,15 +329,42 @@ export function Chips<T extends string>({
               focused && !active && styles.focused,
             ]}
           >
-            {active ? <HoloFill /> : null}
+            {active ? <SelectionRing radius={size.segment / 2} border={1} /> : null}
             {o.icon}
-            <Text variant="labelSmall" tone={active ? 'onAction' : 'default'}>
-              {o.label}
-            </Text>
+            <Text variant="labelSmall">{o.label}</Text>
           </Pressable>
         );
       })}
     </ScrollView>
+  );
+}
+
+// The selected state for chips, segments, and rows: the holographic gradient
+// as a 2px ring around a lightly tinted inside. Drawn over the host's own
+// border (`border`, its width) so selecting never shifts the content.
+function SelectionRing({ radius, border = 0 }: { radius: number; border?: number }) {
+  const styles = useStyles();
+  const t = useTheme();
+  const ring = 2;
+  return (
+    <>
+      <LinearGradient
+        colors={t.holo}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.ringOuter, { top: -border, right: -border, bottom: -border, left: -border, borderRadius: radius }]}
+        pointerEvents="none"
+      />
+      <View
+        style={[
+          styles.ringInner,
+          { top: ring - border, right: ring - border, bottom: ring - border, left: ring - border, borderRadius: radius - ring },
+        ]}
+        pointerEvents="none"
+      >
+        <View style={styles.ringTint} />
+      </View>
+    </>
   );
 }
 
@@ -365,10 +402,13 @@ export function Segmented<T extends string>({
             accessibilityRole="radio"
             accessibilityState={{ checked: active }}
             onPress={() => onChange(o.value)}
-            style={({ focused }: { pressed: boolean; focused?: boolean }) => [styles.segment, focused && styles.focused]}
+            style={({ focused }: { pressed: boolean; focused?: boolean }) => [
+              styles.segment,
+              focused && styles.focused,
+            ]}
           >
-            {active ? <HoloFill /> : null}
-            <Text variant="labelSmall" tone={active ? 'onAction' : 'default'}>
+            {active ? <SelectionRing radius={size.segment / 2} /> : null}
+            <Text variant="labelSmall">
               {o.label}
             </Text>
           </Pressable>
@@ -438,12 +478,12 @@ const useStyles = makeStyles((t) => ({
     maxWidth: t.size.maxContent,
     overflow: 'hidden',
   },
-  primary: {},
-  secondary: { backgroundColor: t.color.surface, borderWidth: 1, borderColor: t.color.border },
-  quiet: { backgroundColor: 'transparent', minHeight: t.size.touch },
-  inline: { alignSelf: 'flex-start', width: 'auto', paddingHorizontal: 0 },
+  secondary: { backgroundColor: t.color.accent },
+  quiet: { backgroundColor: t.color.surface, borderWidth: 1, borderColor: t.color.border },
+  // Hug the label (e.g. "Show password"), keeping the button's padding.
+  inline: { alignSelf: 'flex-start', width: 'auto' },
   pressed: { opacity: 0.85 },
-  disabled: { opacity: 0.45 },
+  disabled: { opacity: 0.4 },
   focused: { outlineColor: t.color.accent, outlineWidth: 2, outlineStyle: 'solid', outlineOffset: 2 } as ViewStyle,
   field: { marginTop: t.space.md },
   input: {
@@ -475,16 +515,11 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: t.color.surface,
     marginTop: t.space.sm,
   },
-  // Border grows 1 -> 2; trim padding by 1 so the content doesn't shift.
-  rowSelected: {
-    borderColor: t.color.accent,
-    borderWidth: 2,
-    paddingHorizontal: t.space.md - 1,
-    paddingVertical: t.space.sm - 1,
-  },
+  rowSelected: { borderColor: 'transparent' },
   rowPressed: { backgroundColor: t.color.sunken },
   // No opacity fade: muted text on the sunken surface still meets contrast.
-  rowDisabled: { backgroundColor: t.color.sunken },
+  // No outline, dimmed: shown but not choosable.
+  rowDisabled: { backgroundColor: t.color.sunken, borderColor: 'transparent', opacity: 0.6 },
   // Bleeds to the screen edges so chips scroll under the gutter.
   chipsScroll: { marginTop: t.space.md, marginHorizontal: -t.space.md },
   chips: { gap: t.space.sm, paddingHorizontal: t.space.md },
@@ -502,6 +537,9 @@ const useStyles = makeStyles((t) => ({
     overflow: 'hidden',
   },
   chipActive: { borderColor: 'transparent' },
+  ringOuter: { position: 'absolute', overflow: 'hidden' },
+  ringInner: { position: 'absolute', backgroundColor: t.color.surface, overflow: 'hidden' },
+  ringTint: { flex: 1, backgroundColor: t.color.accentTint },
   tag: {
     paddingHorizontal: t.space.sm,
     paddingVertical: t.space.xxs,
@@ -509,23 +547,24 @@ const useStyles = makeStyles((t) => ({
     borderWidth: 1,
     borderColor: t.color.border,
   },
+  // Same language as the floating tab bar: a pill track, and the selected
+  // option on a soft capsule with an accent label.
   segmented: {
     flexDirection: 'row',
     gap: t.space.xxs,
     marginTop: t.space.md,
-    padding: t.space.xxs,
-    borderRadius: t.radius.md,
-    backgroundColor: t.color.sunken,
+    padding: t.space.xs,
+    borderRadius: (t.size.segment + t.space.xs * 2) / 2,
+    backgroundColor: t.color.surface,
     borderWidth: 1,
-    borderColor: t.color.border,
+    borderColor: t.glass.edge,
   },
   segment: {
     flex: 1,
     minHeight: t.size.segment,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: t.radius.md - t.space.xxs,
-    overflow: 'hidden',
+    borderRadius: t.size.segment / 2,
   },
   notice: {
     marginTop: t.space.md,

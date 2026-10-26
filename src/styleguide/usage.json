@@ -1,0 +1,167 @@
+{
+  "CardBack.CardBack": [
+    "components/FlipCard.tsx"
+  ],
+  "CardBanner.BannerTone": [
+    "components/CardGrid.tsx"
+  ],
+  "CardBanner.CardBanner": [
+    "components/CardGrid.tsx"
+  ],
+  "CardGrid.CardTile": [
+    "app/(tabs)/collection.tsx",
+    "app/(tabs)/inventory.tsx"
+  ],
+  "CardGrid.useGridSizing": [
+    "app/(tabs)/collection.tsx",
+    "app/(tabs)/inventory.tsx"
+  ],
+  "CollectibleCard.CollectibleCard": [
+    "app/card/[id].tsx",
+    "app/onboarding/claim.tsx",
+    "components/CardGrid.tsx",
+    "components/FlipCard.tsx"
+  ],
+  "CourtLines.CourtLines": [
+    "components/HoloCard.tsx"
+  ],
+  "FlipCard.FlipCard": [
+    "app/onboarding/claim.tsx"
+  ],
+  "GlassTabBar.GlassTabBar": [
+    "app/(tabs)/_layout.tsx"
+  ],
+  "GlassTabBar.useTabBarSpace": [
+    "app/(tabs)/collection.tsx",
+    "app/(tabs)/inventory.tsx",
+    "app/(tabs)/profile.tsx"
+  ],
+  "HoloCard.HoloCard": [
+    "components/CollectibleCard.tsx"
+  ],
+  "HoloSurface.HoloSurface": [
+    "components/ui.tsx"
+  ],
+  "HoloSurface.useHoloPointer": [
+    "components/ui.tsx"
+  ],
+  "SlabCard.SlabCard": [
+    "components/CollectibleCard.tsx"
+  ],
+  "SocialButton.SocialButton": [
+    "app/sign-in.tsx"
+  ],
+  "TeamLogo.TeamLogo": [
+    "app/(tabs)/inventory.tsx",
+    "app/(tabs)/profile.tsx",
+    "app/card/[id].tsx",
+    "app/onboarding/team.tsx"
+  ],
+  "sharedTilt.useSharedTilt": [
+    "components/HoloCard.tsx"
+  ],
+  "ui.BackButton": [
+    "app/account/password.tsx",
+    "app/onboarding/claim.tsx",
+    "app/onboarding/team.tsx"
+  ],
+  "ui.Button": [
+    "app/(tabs)/collection.tsx",
+    "app/(tabs)/profile.tsx",
+    "app/account/password.tsx",
+    "app/auth/callback.tsx",
+    "app/card/[id].tsx",
+    "app/onboarding/claim.tsx",
+    "app/onboarding/team.tsx",
+    "app/sign-in.tsx"
+  ],
+  "ui.Chips": [
+    "app/(tabs)/inventory.tsx"
+  ],
+  "ui.Field": [
+    "app/(tabs)/profile.tsx",
+    "app/account/password.tsx",
+    "app/onboarding/team.tsx",
+    "app/sign-in.tsx"
+  ],
+  "ui.Lede": [
+    "app/account/password.tsx",
+    "app/auth/callback.tsx",
+    "app/onboarding/claim.tsx",
+    "app/onboarding/league.tsx",
+    "app/onboarding/team.tsx",
+    "app/sign-in.tsx"
+  ],
+  "ui.Loading": [
+    "app/(tabs)/_layout.tsx",
+    "app/(tabs)/collection.tsx",
+    "app/(tabs)/inventory.tsx",
+    "app/(tabs)/profile.tsx",
+    "app/_layout.tsx",
+    "app/auth/callback.tsx",
+    "app/card/[id].tsx",
+    "app/index.tsx",
+    "app/onboarding/_layout.tsx",
+    "app/onboarding/claim.tsx",
+    "app/onboarding/league.tsx",
+    "app/onboarding/team.tsx"
+  ],
+  "ui.Notice": [
+    "app/(tabs)/collection.tsx",
+    "app/(tabs)/inventory.tsx",
+    "app/(tabs)/profile.tsx",
+    "app/account/password.tsx",
+    "app/card/[id].tsx",
+    "app/onboarding/claim.tsx",
+    "app/onboarding/league.tsx",
+    "app/onboarding/team.tsx",
+    "app/sign-in.tsx"
+  ],
+  "ui.Row": [
+    "app/(tabs)/profile.tsx",
+    "app/onboarding/league.tsx",
+    "app/onboarding/team.tsx"
+  ],
+  "ui.Screen": [
+    "app/(tabs)/profile.tsx",
+    "app/account/password.tsx",
+    "app/auth/callback.tsx",
+    "app/card/[id].tsx",
+    "app/onboarding/claim.tsx",
+    "app/onboarding/league.tsx",
+    "app/onboarding/team.tsx",
+    "app/sign-in.tsx"
+  ],
+  "ui.Segmented": [
+    "app/(tabs)/inventory.tsx"
+  ],
+  "ui.Spinner": [
+    "app/(tabs)/inventory.tsx"
+  ],
+  "ui.Tag": [
+    "app/onboarding/league.tsx"
+  ],
+  "ui.Text": [
+    "app/(tabs)/collection.tsx",
+    "app/(tabs)/inventory.tsx",
+    "app/(tabs)/profile.tsx",
+    "app/account/password.tsx",
+    "app/card/[id].tsx",
+    "app/onboarding/claim.tsx",
+    "app/onboarding/team.tsx",
+    "app/sign-in.tsx",
+    "components/CardGrid.tsx",
+    "components/GlassTabBar.tsx",
+    "components/SocialButton.tsx",
+    "components/TeamLogo.tsx"
+  ],
+  "ui.Title": [
+    "app/(tabs)/profile.tsx",
+    "app/account/password.tsx",
+    "app/auth/callback.tsx",
+    "app/onboarding/claim.tsx",
+    "app/onboarding/league.tsx",
+    "app/onboarding/team.tsx",
+    "app/sign-in.tsx"
+  ]
+}

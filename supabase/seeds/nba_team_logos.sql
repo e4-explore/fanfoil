@@ -1,6 +1,7 @@
 -- =============================================================================
--- NBA team logos (light and dark-background versions), from ESPN's public
--- team feed, pulled 2026-10-26. Used wherever the app shows a team.
+-- NBA league and team logos (light and dark-background versions), from
+-- ESPN's public feeds, pulled 2026-10-26. Team logos show wherever the app
+-- shows a team; the league logo is on the back of NBA cards.
 --
 -- These are team trademarks used without a license, at the owner's direction
 -- and against the strategy doc's guidance. To remove or replace them (e.g.
@@ -44,3 +45,8 @@ update public.teams tm
   ) as v (abbr, logo_url, logo_dark_url)
  where tm.abbreviation = v.abbr
    and tm.league_id = (select id from public.leagues where slug = 'nba');
+
+update public.leagues
+   set logo_url = 'https://a.espncdn.com/i/teamlogos/leagues/500/nba.png',
+       logo_dark_url = 'https://a.espncdn.com/i/teamlogos/leagues/500-dark/nba.png'
+ where slug = 'nba';

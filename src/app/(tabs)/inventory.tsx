@@ -100,8 +100,12 @@ export default function AllCards() {
             key: item.id,
             item,
             caption: availability(item),
-            badge: owned.has(item.id) ? <Text variant="smallStrong" tone="success">Yours</Text> : null,
-            banner: item.remaining === 0 ? 'Claimed' : undefined,
+            // Owning it wins over "All claimed" (you may hold the last copy).
+            banner: owned.has(item.id)
+              ? { label: 'Yours', tone: 'holo' }
+              : item.remaining === 0
+                ? { label: 'All claimed', tone: 'neutral' }
+                : undefined,
           }}
           onPress={() => router.push({ pathname: '/card/[id]', params: { id: item.id } })}
         />

@@ -15,7 +15,7 @@ export function cardFacts(item: InventoryItem) {
 // Short status for grids and the claim panel. Every card is an edition:
 // vaulted types have one physical copy per unit of supply.
 export function availability(item: InventoryItem) {
-  return item.remaining === 0 ? 'All claimed' : `${count(item.remaining)} of ${count(item.total_supply)} left`;
+  return `${count(item.remaining)} of ${count(item.total_supply)} left`;
 }
 
 // "#2 of 50"

@@ -68,6 +68,16 @@ export const holo = {
   stops: ['#8FD8F7', '#B9A6FF', '#F5A6DC', '#FFD68A'] as const,
   ink: '#141413',
   accent: { light: '#6A4FD8', dark: '#B9A6FF' },
+  // Text on a solid accent fill (secondary button): 5.6:1 light, 8.7:1 dark.
+  accentInk: { light: '#FFFFFF', dark: '#141413' },
+  // Faint accent wash inside selected chips.
+  tint: { light: 'rgba(106,79,216,0.08)', dark: 'rgba(185,166,255,0.14)' },
+  // Depth on the primary button: a light-to-dark shade, a fine diagonal
+  // texture, and the moving sheen that follows the pointer or finger.
+  shadeTop: 'rgba(255,255,255,0.45)',
+  shadeBottom: 'rgba(20,20,19,0.14)',
+  texture: 'rgba(20,20,19,0.07)',
+  sheen: 'rgba(255,255,255,0.65)',
 } as const;
 
 // The cards are physical-looking objects: same in light and dark mode.
@@ -83,7 +93,8 @@ export const card = {
     weave: 'rgba(255,255,255,0.06)',
     mark: '#B9A6FF',
   },
-  // Band across a card that has no copies left ("Claimed").
+  // Bands across a card: "All claimed" (no copies left) and "Yours" (owned;
+  // drawn on the holographic gradient with holo.ink).
   banner: { fill: 'rgba(20,20,19,0.82)', ink: '#FAF9F5', edge: 'rgba(250,249,245,0.35)' },
   // Vaulted cards: a plain frame around the unedited slab photo. The label is
   // Fanfoil's own neutral design (not any grader's label colors).

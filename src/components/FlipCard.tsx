@@ -41,7 +41,7 @@ export function FlipCard({ item, width, revealed }: { item: InventoryItem; width
         importantForAccessibility={revealed ? 'no-hide-descendants' : 'yes'}
         style={[styles.face, { opacity: backOpacity, transform: [{ perspective: 900 }, { rotateY: backRotate }] }]}
       >
-        <CardBack width={width} label={width < 160 ? 'Reveal' : 'Tap to reveal'} />
+        <CardBack width={width} logoUrl={item.league_logo_dark_url ?? item.league_logo_url} />
       </Animated.View>
       <Animated.View
         importantForAccessibility={revealed ? 'yes' : 'no-hide-descendants'}

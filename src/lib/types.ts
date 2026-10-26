@@ -53,6 +53,8 @@ export type InventoryItem = {
   photo_front_url: string | null; // representative photo of this card type
   est_value_cents: number | null;
   is_sample: boolean;
+  league_logo_url: string | null;
+  league_logo_dark_url: string | null; // for dark surfaces such as the card back
 };
 
 // The specific physical copy a fan owns (vaulted cards only).

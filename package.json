@@ -48,7 +48,8 @@
     "typecheck": "tsc --noEmit",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "styleguide:usage": "node scripts/component-usage.mjs"
   },
   "private": true
 }

@@ -8,13 +8,15 @@
 // Light or dark follows the device setting. Each makeStyles sheet is built at
 // most once per mode and shared by every instance, so switching is cheap.
 
+import { createContext, createElement, useContext, type ReactNode } from 'react';
 import { StyleSheet, useColorScheme, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 
 import { card, glass, holo, neutrals, social, status } from './palette';
 
 export const fonts = {
   display: 'BarlowCondensed_700Bold',
-  displayHeavy: 'BarlowCondensed_800ExtraBold',
+  displayItalic: 'BarlowCondensed_700Bold_Italic', // screen titles
+  displayHeavy: 'BarlowCondensed_800ExtraBold', // card art
   body: 'Barlow_400Regular',
   bodyMedium: 'Barlow_500Medium',
   bodyBold: 'Barlow_600SemiBold',
@@ -22,7 +24,7 @@ export const fonts = {
 
 // The only text styles in the app. Color is applied separately (see <Text tone>).
 export const type = {
-  title: { fontFamily: fonts.displayHeavy, fontSize: 40, lineHeight: 42 },
+  title: { fontFamily: fonts.displayItalic, fontSize: 40, lineHeight: 42 },
   heading: { fontFamily: fonts.display, fontSize: 26, lineHeight: 30 },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24 },
   bodyStrong: { fontFamily: fonts.bodyBold, fontSize: 16, lineHeight: 24 },
@@ -53,9 +55,12 @@ function build(mode: 'light' | 'dark') {
       ...neutrals[mode],
       ...status[mode],
       accent: holo.accent[mode],
+      onAccent: holo.accentInk[mode],
+      accentTint: holo.tint[mode],
       onAction: holo.ink,
     },
     holo: holo.stops,
+    holoFx: { shadeTop: holo.shadeTop, shadeBottom: holo.shadeBottom, texture: holo.texture, sheen: holo.sheen },
     glass: glass[mode],
     social: { ...social[mode], googleG: social.googleG },
     statusBar: mode === 'dark' ? ('light' as const) : ('dark' as const),
@@ -71,8 +76,18 @@ export type Theme = ReturnType<typeof build>;
 
 export const themes = { light: build('light'), dark: build('dark') } as const;
 
+// Lets a subtree render in a fixed mode (the style guide shows light and dark
+// side by side). Everywhere else the theme follows the device setting.
+const ThemeOverride = createContext<Theme | null>(null);
+
+export function ThemeScope({ mode, children }: { mode: 'light' | 'dark'; children: ReactNode }) {
+  return createElement(ThemeOverride.Provider, { value: themes[mode] }, children);
+}
+
 export function useTheme(): Theme {
-  return useColorScheme() === 'dark' ? themes.dark : themes.light;
+  const override = useContext(ThemeOverride);
+  const scheme = useColorScheme();
+  return override ?? (scheme === 'dark' ? themes.dark : themes.light);
 }
 
 type NamedStyles<T> = { [P in keyof T]: ViewStyle | TextStyle | ImageStyle };
@@ -90,6 +105,7 @@ export function makeStyles<T extends NamedStyles<T>>(factory: (t: Theme) => T | 
   };
 }
 
-// Card art is the same in both modes.
-export { card };
+// Card art is the same in both modes (holo: the holographic stops and ink,
+// for mode-independent art such as the "Yours" banner).
+export { card, holo };
 export type CardTier = keyof typeof card.foil;

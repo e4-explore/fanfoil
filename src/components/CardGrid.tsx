@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 
-import { CardBanner } from '@/components/CardBanner';
+import { CardBanner, type BannerTone } from '@/components/CardBanner';
 import { CollectibleCard } from '@/components/CollectibleCard';
 import { Text } from '@/components/ui';
 import type { CopyLabel, InventoryItem } from '@/lib/types';
@@ -14,7 +14,7 @@ export type GridEntry = {
   copy?: CopyLabel | null;
   caption?: string;
   badge?: ReactNode;
-  banner?: string; // e.g. "Claimed", drawn across the card
+  banner?: { label: string; tone: BannerTone }; // drawn across the card, e.g. Yours / All claimed
 };
 
 // Responsive grid: 2 columns on phones, 3 on wider screens.
@@ -39,7 +39,7 @@ export function CardTile({ entry, width, onPress }: { entry: GridEntry; width: n
         {/* Foil follows the phone's tilt (shared by all cards) and web hover; no
             drag here, so scrolling and tapping work as usual. */}
         <CollectibleCard item={entry.item} width={width} serial={entry.serial} copy={entry.copy} interactive={false} useMotion />
-        {entry.banner ? <CardBanner label={entry.banner} width={width} /> : null}
+        {entry.banner ? <CardBanner label={entry.banner.label} tone={entry.banner.tone} width={width} /> : null}
       </View>
       <View style={styles.caption}>
         {entry.caption ? <Text variant="small" tone="muted">{entry.caption}</Text> : null}
