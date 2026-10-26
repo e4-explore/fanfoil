@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Lede, Loading, Notice, Row, Screen, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 
+// First onboarding step: no Back here, so new accounts finish the flow.
 export default function PickSport() {
   const router = useRouter();
   const sports = useQuery({ queryKey: ['sports'], queryFn: api.sports });

@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 
 import { FlipCard } from '@/components/FlipCard';
 import { HoloCard } from '@/components/HoloCard';
-import { Button, Lede, Loading, Notice, Screen, Title } from '@/components/ui';
+import { BackButton, Button, Lede, Loading, Notice, Screen, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import { AppError } from '@/lib/errors';
 import type { InventoryItem } from '@/lib/types';
@@ -65,6 +65,9 @@ export default function ClaimFirstCard() {
   if (!profile) return <Loading />;
   if (!profile.followed_team_id) return <Redirect href="/onboarding/team" />;
 
+  // Back to the team picker to choose a different team before claiming.
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/onboarding/team'));
+
   // Success: the claimed card, big and tiltable.
   if (claimed) {
     const big = Math.min(screenWidth - space.md * 2, 320);
@@ -98,6 +101,7 @@ export default function ClaimFirstCard() {
   if (offer.error) {
     return (
       <Screen>
+        <BackButton onPress={goBack} />
         <Title>Your first card</Title>
         <Notice tone="error" text={offer.error.message} />
         <Button label="Try again" style={{ marginTop: space.md }} onPress={() => offer.refetch()} />
@@ -138,6 +142,7 @@ export default function ClaimFirstCard() {
         )
       }
     >
+      <BackButton onPress={goBack} />
       <Title>Your first card</Title>
       <Lede>Three roles from your team’s roster. Reveal them, then keep one. You only get to pick once.</Lede>
       {notice ? <Notice text={notice} /> : null}

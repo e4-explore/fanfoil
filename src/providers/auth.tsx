@@ -18,14 +18,36 @@ export type OAuthProvider = 'google' | 'apple';
 type AuthContextValue = {
   session: Session | null;
   initializing: boolean;
-  profile: Profile | undefined;
-  profileLoading: boolean;
   refreshProfile: () => Promise<unknown>;
   sendEmailCode: (email: string) => Promise<void>;
   verifyEmailCode: (email: string, code: string) => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  setPassword: (password: string) => Promise<void>;
+  dismissPasswordPrompt: () => Promise<void>;
   signInWithProvider: (provider: OAuthProvider) => Promise<void>;
   signOut: () => Promise<void>;
 };
+
+export const MIN_PASSWORD_LENGTH = 8;
+
+// Email-code users are offered an optional password once, right after signing
+// in. These user_metadata flags only steer that prompt; they grant nothing.
+export function hasPassword(session: Session | null) {
+  return !!session?.user.user_metadata?.password_set;
+}
+
+// Where a signed-in person belongs once any sign-in prompts are done.
+export function nextStep(profile: Profile) {
+  if (!profile.followed_team_id) return '/onboarding/sport' as const;
+  if (!profile.onboarding_claimed_at) return '/onboarding/claim' as const;
+  return '/collection' as const;
+}
+
+export function shouldPromptForPassword(session: Session | null) {
+  const user = session?.user;
+  if (!user?.email || user.app_metadata?.provider !== 'email') return false;
+  return !user.user_metadata?.password_set && !user.user_metadata?.password_prompt_dismissed;
+}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -69,11 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [incomingUrl]);
 
   const userId = session?.user.id;
-  const profileQuery = useQuery({
-    queryKey: ['profile', userId],
-    queryFn: () => api.profile(userId!),
-    enabled: !!userId,
-  });
 
   const sendEmailCode = useCallback(async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({
@@ -85,6 +102,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyEmailCode = useCallback(async (email: string, code: string) => {
     const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+    if (error) throw toAppError(error);
+  }, []);
+
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw toAppError(error);
+  }, []);
+
+  const setPassword = useCallback(async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password, data: { password_set: true } });
+    if (error) throw toAppError(error);
+  }, []);
+
+  const dismissPasswordPrompt = useCallback(async () => {
+    const { error } = await supabase.auth.updateUser({ data: { password_prompt_dismissed: true } });
     if (error) throw toAppError(error);
   }, []);
 
@@ -128,15 +160,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       session,
       initializing,
-      profile: profileQuery.data,
-      profileLoading: profileQuery.isLoading,
       refreshProfile: () => queryClient.invalidateQueries({ queryKey: ['profile', userId] }),
       sendEmailCode,
       verifyEmailCode,
+      signInWithPassword,
+      setPassword,
+      dismissPasswordPrompt,
       signInWithProvider,
       signOut,
     }),
-    [session, initializing, profileQuery.data, profileQuery.isLoading, queryClient, userId, sendEmailCode, verifyEmailCode, signInWithProvider, signOut],
+    [session, initializing, queryClient, userId, sendEmailCode, verifyEmailCode, signInWithPassword, setPassword, dismissPasswordPrompt, signInWithProvider, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -145,5 +178,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
-  return ctx;
+
+  // Each caller subscribes to the profile itself instead of reading it through
+  // context. Context only catches up a tick after a refetch, so a screen
+  // mounted right after `await refreshProfile()` (the claim screen, after
+  // following a team) saw the old profile and redirected back.
+  const userId = ctx.session?.user.id;
+  const profile = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: () => api.profile(userId!),
+    enabled: !!userId,
+  });
+
+  return { ...ctx, profile: profile.data as Profile | undefined, profileLoading: profile.isLoading };
 }

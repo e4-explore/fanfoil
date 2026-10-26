@@ -7,10 +7,12 @@ import { useAuth, type OAuthProvider } from '@/providers/auth';
 import { colors, space, type } from '@/theme';
 
 export default function SignIn() {
-  const { session, sendEmailCode, verifyEmailCode, signInWithProvider } = useAuth();
+  const { session, sendEmailCode, verifyEmailCode, signInWithPassword, signInWithProvider } = useAuth();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [password, setPassword] = useState('');
+  // A code is the default; a password is an option for people who added one.
+  const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,6 +33,22 @@ export default function SignIn() {
   const emailValid = /^\S+@\S+\.\S+$/.test(email.trim());
 
   const provider = (p: OAuthProvider) => attempt(p, () => signInWithProvider(p));
+  const sendCode = () => attempt('email', async () => { await sendEmailCode(email.trim()); setStep('code'); });
+  const passwordSignIn = () => attempt('password', () => signInWithPassword(email.trim(), password));
+
+  const emailField = (onSubmit: () => void) => (
+    <Field
+      label="Email"
+      value={email}
+      onChangeText={setEmail}
+      autoCapitalize="none"
+      autoComplete="email"
+      keyboardType="email-address"
+      textContentType="emailAddress"
+      placeholder="you@example.com"
+      onSubmitEditing={() => emailValid && onSubmit()}
+    />
+  );
 
   return (
     <Screen>
@@ -39,23 +57,45 @@ export default function SignIn() {
 
       {step === 'email' ? (
         <>
-          <Field
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            placeholder="you@example.com"
-            onSubmitEditing={() => emailValid && attempt('email', async () => { await sendEmailCode(email.trim()); setStep('code'); })}
-          />
+          {emailField(sendCode)}
           <Button
             label="Email me a sign-in code"
             style={{ marginTop: space.md }}
             disabled={!emailValid}
             loading={busy === 'email'}
-            onPress={() => attempt('email', async () => { await sendEmailCode(email.trim()); setStep('code'); })}
+            onPress={sendCode}
+          />
+          <Button
+            label="Use a password instead"
+            variant="quiet"
+            onPress={() => { setStep('password'); setError(null); }}
+          />
+        </>
+      ) : step === 'password' ? (
+        <>
+          {emailField(() => {})}
+          <Field
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="current-password"
+            textContentType="password"
+            onSubmitEditing={() => emailValid && password && passwordSignIn()}
+          />
+          <Button
+            label="Sign in"
+            style={{ marginTop: space.md }}
+            disabled={!emailValid || !password}
+            loading={busy === 'password'}
+            onPress={passwordSignIn}
+          />
+          <Button
+            label="Email me a code instead"
+            variant="quiet"
+            onPress={() => { setStep('email'); setPassword(''); setError(null); }}
           />
         </>
       ) : (

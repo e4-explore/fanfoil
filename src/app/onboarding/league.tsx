@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { Button, Lede, Loading, Notice, Row, Screen, Title } from '@/components/ui';
+import { BackButton, Lede, Loading, Notice, Row, Screen, Title } from '@/components/ui';
 import { api } from '@/lib/api';
-import { space } from '@/theme';
 
 export default function PickLeague() {
   const router = useRouter();
@@ -14,6 +13,7 @@ export default function PickLeague() {
 
   return (
     <Screen>
+      <BackButton onPress={() => (router.canGoBack() ? router.back() : router.replace('/onboarding/sport'))} />
       <Title>Pick a league</Title>
       <Lede>Your cards come from the league you choose.</Lede>
       {leagues.error ? <Notice tone="error" text={leagues.error.message} /> : null}
@@ -25,7 +25,6 @@ export default function PickLeague() {
           onPress={() => router.push({ pathname: '/onboarding/team', params: { leagueId: league.id } })}
         />
       ))}
-      <Button label="Back" variant="quiet" style={{ marginTop: space.md }} onPress={() => router.back()} />
     </Screen>
   );
 }

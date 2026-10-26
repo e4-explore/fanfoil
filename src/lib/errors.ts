@@ -11,6 +11,11 @@ const messages: Record<string, string> = {
   offer_closed: 'You’ve already claimed from these options.',
   not_in_offer: 'That card isn’t one of your options. Pick one of the three shown.',
   team_changed: 'You switched teams. Here are the options for your current team.',
+  // Supabase Auth error codes
+  invalid_credentials: 'That email and password don’t match. No password yet? Sign in with a code instead.',
+  weak_password: 'Pick a longer password: at least 8 characters.',
+  same_password: 'That’s already your password. Pick a different one.',
+  otp_expired: 'That code has expired or was already used. Request a new one.',
 };
 
 export class AppError extends Error {
@@ -22,7 +27,9 @@ export class AppError extends Error {
 export function toAppError(error: unknown): AppError {
   const raw =
     typeof error === 'object' && error && 'message' in error ? String((error as { message: unknown }).message) : '';
-  const code = Object.keys(messages).find((key) => raw === key || raw.includes(key));
+  const authCode =
+    typeof error === 'object' && error && 'code' in error ? String((error as { code: unknown }).code) : '';
+  const code = Object.keys(messages).find((key) => authCode === key || raw === key || raw.includes(key));
   if (code) return new AppError(code, messages[code]);
   return new AppError('unknown', raw || 'Something went wrong. Check your connection and try again.');
 }

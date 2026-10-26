@@ -5,7 +5,7 @@ import { Text } from 'react-native';
 
 import { Button, Field, Loading, Notice, Row, Screen, Title } from '@/components/ui';
 import { api } from '@/lib/api';
-import { useAuth } from '@/providers/auth';
+import { hasPassword, useAuth } from '@/providers/auth';
 import { space, type } from '@/theme';
 
 export default function Profile() {
@@ -54,6 +54,17 @@ export default function Profile() {
         onPress={() => save.mutate()}
       />
       {save.error ? <Notice tone="error" text={save.error.message} /> : null}
+
+      {session?.user.email ? (
+        <>
+          <Text style={[type.heading, { marginTop: space.xl }]}>Password</Text>
+          <Row
+            title={hasPassword(session) ? 'Change password' : 'Add a password'}
+            detail={hasPassword(session) ? undefined : 'Optional. Sign in without waiting for a code.'}
+            onPress={() => router.push({ pathname: '/account/password', params: { mode: 'manage' } })}
+          />
+        </>
+      ) : null}
 
       <Button label="Sign out" variant="quiet" style={{ marginTop: space.xl }} onPress={signOut} />
     </Screen>

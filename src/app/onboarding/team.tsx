@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-import { Button, Field, Lede, Loading, Notice, Row, Screen, Title } from '@/components/ui';
+import { BackButton, Button, Field, Lede, Loading, Notice, Row, Screen, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import type { Team } from '@/lib/types';
 import { useAuth } from '@/providers/auth';
@@ -33,9 +33,16 @@ export default function PickTeam() {
     onSuccess: async (next) => {
       await refreshProfile();
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
-      router.replace(next.onboarding_claimed_at ? '/collection' : '/onboarding/claim');
+      // Push (not replace) so Back on the claim screen returns here to re-pick.
+      if (next.onboarding_claimed_at) router.replace('/collection');
+      else router.push('/onboarding/claim');
     },
   });
+
+  const goBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace(switching ? '/profile' : '/onboarding/sport');
+  };
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -59,12 +66,18 @@ export default function PickTeam() {
       footer={
         <Button
           label={selected ? `Follow the ${selected.nickname}` : 'Pick a team'}
-          disabled={!selected || selected.id === profile?.followed_team_id}
+          disabled={!selected || (switching && selected.id === profile?.followed_team_id)}
           loading={follow.isPending}
-          onPress={() => selected && follow.mutate(selected.id)}
+          onPress={() => {
+            if (!selected) return;
+            // Came back from the claim screen and kept the same team: just continue.
+            if (selected.id === profile?.followed_team_id) router.push('/onboarding/claim');
+            else follow.mutate(selected.id);
+          }}
         />
       }
     >
+      <BackButton onPress={goBack} />
       <Title>{switching ? 'Switch teams' : 'Pick your team'}</Title>
       <Lede>
         {switching

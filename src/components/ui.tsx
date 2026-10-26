@@ -28,12 +28,38 @@ export function Screen({
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       {scroll ? (
-        <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: space.xl + insets.bottom }]}>{inner}</ScrollView>
+        // "handled": with the keyboard up (e.g. after a search), the first tap
+        // on a row selects it instead of only dismissing the keyboard.
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[styles.scroll, { paddingBottom: space.xl + insets.bottom }]}
+        >
+          {inner}
+        </ScrollView>
       ) : (
         <View style={[styles.scroll, { flex: 1 }]}>{inner}</View>
       )}
       {footer ? <View style={[styles.footer, { paddingBottom: space.md + insets.bottom }]}>{footer}</View> : null}
     </View>
+  );
+}
+
+// Top-left of a screen, above the title.
+export function BackButton({ onPress, label = 'Back' }: { onPress: () => void; label?: string }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      hitSlop={8}
+      style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
+        styles.back,
+        pressed && { opacity: 0.6 },
+        focused && styles.focused,
+      ]}
+    >
+      <Text style={styles.backText}>{`‹ ${label}`}</Text>
+    </Pressable>
   );
 }
 
@@ -168,6 +194,15 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.arena },
   scroll: { paddingHorizontal: space.md, paddingTop: space.lg, alignItems: 'center' },
   column: { width: '100%', maxWidth: maxContentWidth },
+  back: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    marginTop: -space.md,
+    marginBottom: space.xs,
+    borderRadius: radius.sm,
+  },
+  backText: { fontFamily: fonts.bodyBold, fontSize: 17, color: colors.mist },
   footer: {
     paddingHorizontal: space.md,
     paddingTop: space.md,
