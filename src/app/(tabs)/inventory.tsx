@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardTile, useGridSizing } from '@/components/CardGrid';
 import { useTabBarSpace } from '@/components/GlassTabBar';
+import { TeamLogo } from '@/components/TeamLogo';
 import { Chips, Loading, Notice, Segmented, Spinner, Text } from '@/components/ui';
 import { api } from '@/lib/api';
 import { availability } from '@/lib/collectibles';
@@ -35,7 +36,11 @@ export default function AllCards() {
   const teamOptions = useMemo(() => {
     const list = [...(teams.data ?? [])].sort((a, b) => a.name.localeCompare(b.name));
     const mine = list.filter((tm) => tm.id === myTeamId);
-    return [...mine, ...list.filter((tm) => tm.id !== myTeamId)].map((tm) => ({ value: tm.id, label: tm.nickname }));
+    return [...mine, ...list.filter((tm) => tm.id !== myTeamId)].map((tm) => ({
+      value: tm.id,
+      label: tm.nickname,
+      icon: <TeamLogo team={tm} size="sm" />,
+    }));
   }, [teams.data, myTeamId]);
   const teamId = pickedTeamId ?? myTeamId;
 

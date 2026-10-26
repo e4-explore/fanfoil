@@ -26,7 +26,7 @@ export const api = {
     run<Team[]>(
       supabase
         .from('teams')
-        .select('id, league_id, slug, name, location, nickname, abbreviation, conference, logo_url')
+        .select('id, league_id, slug, name, location, nickname, abbreviation, conference, logo_url, logo_dark_url')
         .eq('league_id', leagueId)
         .eq('is_active', true)
         .order('name'),
@@ -36,7 +36,7 @@ export const api = {
     run<Team>(
       supabase
         .from('teams')
-        .select('id, league_id, slug, name, location, nickname, abbreviation, conference, logo_url')
+        .select('id, league_id, slug, name, location, nickname, abbreviation, conference, logo_url, logo_dark_url')
         .eq('id', teamId)
         .single(),
     ),

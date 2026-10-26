@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CollectibleCard } from '@/components/CollectibleCard';
+import { TeamLogo } from '@/components/TeamLogo';
 import { Button, Loading, Notice, Screen, Text } from '@/components/ui';
 import { api } from '@/lib/api';
 import { availability, cardFacts, edition, formatValue, ownership } from '@/lib/collectibles';
@@ -20,6 +21,8 @@ export default function CardDetail() {
   // even when they opened it from All cards.
   const collection = useQuery({ queryKey: ['collection'], queryFn: api.myCollection });
   const mine = collection.data?.find((c) => c.collectible.id === id);
+  const teamId = item.data?.team_id;
+  const team = useQuery({ queryKey: ['team', teamId], queryFn: () => api.team(teamId!), enabled: !!teamId });
 
   if (item.isLoading) return <Loading />;
 
@@ -46,10 +49,18 @@ export default function CardDetail() {
         <CollectibleCard item={card} width={cardWidth} serial={serialNumber} copy={copy} useMotion />
       </View>
       <Text variant="heading">{card.name}</Text>
+      {team.data ? (
+        <View style={styles.team}>
+          <TeamLogo team={team.data} size="sm" />
+          <Text variant="small" tone="muted">
+            {team.data.name}
+          </Text>
+        </View>
+      ) : null}
       {card.kind === 'vaulted' ? (
         <>
           <Text variant="small" tone="muted">
-            {[cardFacts(card), card.team_name].filter(Boolean).join(' · ')}
+            {cardFacts(card)}
           </Text>
           {card.is_sample ? (
             <Notice text="Sample card for testing. A real graded card of this player replaces it once vaulted." />
@@ -72,7 +83,7 @@ export default function CardDetail() {
       ) : (
         <>
           <Text variant="small" tone="muted">
-            {['Fanfoil Original', card.tier_name, card.team_name, card.season].filter(Boolean).join(', ')}
+            {['Fanfoil Original', card.tier_name, card.season].filter(Boolean).join(', ')}
           </Text>
           <Text style={styles.paragraph}>{card.description}</Text>
           {roles.length > 0 ? (
@@ -111,6 +122,7 @@ function Fact({ label, value }: { label: string; value: string }) {
 
 const useStyles = makeStyles((t) => ({
   hero: { alignItems: 'center', marginVertical: t.space.lg },
+  team: { flexDirection: 'row', alignItems: 'center', gap: t.space.sm, marginVertical: t.space.xs },
   facts: {
     marginTop: t.space.md,
     borderRadius: t.radius.md,

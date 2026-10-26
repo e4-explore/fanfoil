@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 
+import { TeamLogo } from '@/components/TeamLogo';
 import { BackButton, Button, Field, Lede, Loading, Notice, Row, Screen, Text, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import type { Team } from '@/lib/types';
@@ -103,7 +104,7 @@ export default function PickTeam() {
               detail={team.id === profile?.followed_team_id ? 'Your team' : undefined}
               selected={selected?.id === team.id}
               onPress={() => setSelected(team)}
-              trailing={<TeamMark team={team} />}
+              leading={<TeamLogo team={team} />}
             />
           ))}
         </View>
@@ -113,27 +114,6 @@ export default function PickTeam() {
   );
 }
 
-// Shows a logo if you've added one (teams.logo_url), otherwise the abbreviation.
-function TeamMark({ team }: { team: Team }) {
-  const styles = useStyles();
-  if (team.logo_url) {
-    return <Image source={{ uri: team.logo_url }} style={styles.mark} accessibilityIgnoresInvertColors />;
-  }
-  return (
-    <View style={styles.mark}>
-      <Text variant="mark">{team.abbreviation}</Text>
-    </View>
-  );
-}
-
 const useStyles = makeStyles((t) => ({
   group: { marginTop: t.space.lg },
-  mark: {
-    width: t.size.touch,
-    height: t.size.touch,
-    borderRadius: t.radius.sm,
-    backgroundColor: t.color.sunken,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 }));

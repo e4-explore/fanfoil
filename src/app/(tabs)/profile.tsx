@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { useTabBarSpace } from '@/components/GlassTabBar';
+import { TeamLogo } from '@/components/TeamLogo';
 import { Button, Field, Loading, Notice, Row, Screen, Text, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import { hasPassword, useAuth } from '@/providers/auth';
@@ -39,6 +40,7 @@ export default function Profile() {
       <Row
         title={team.data?.name ?? '…'}
         detail="Switch teams"
+        leading={team.data ? <TeamLogo team={team.data} /> : null}
         onPress={() => router.push({ pathname: '/onboarding/team', params: { mode: 'switch' } })}
       />
       <Text variant="small" tone="muted" style={styles.hint}>

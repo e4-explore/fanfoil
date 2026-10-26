@@ -10,7 +10,7 @@
 
 import { StyleSheet, useColorScheme, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 
-import { card, glass, holo, neutrals, status } from './palette';
+import { card, glass, holo, neutrals, social, status } from './palette';
 
 export const fonts = {
   display: 'BarlowCondensed_700Bold',
@@ -57,6 +57,7 @@ function build(mode: 'light' | 'dark') {
     },
     holo: holo.stops,
     glass: glass[mode],
+    social: { ...social[mode], googleG: social.googleG },
     statusBar: mode === 'dark' ? ('light' as const) : ('dark' as const),
     space,
     radius,

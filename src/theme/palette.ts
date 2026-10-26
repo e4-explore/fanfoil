@@ -46,6 +46,16 @@ export const glass = {
   },
 } as const;
 
+// Sign in with Google / Apple. Values are Google's published button themes:
+// the light app gets their dark button, the dark app gets their light one,
+// so these buttons stand out in both. Apple's black/white styles match.
+// The Google "G" must stay full color on white (never monochrome).
+export const social = {
+  light: { fill: '#131314', ink: '#E3E3E3', stroke: '#8E918F' },
+  dark: { fill: '#FFFFFF', ink: '#1F1F1F', stroke: '#747775' },
+  googleG: { red: '#EA4335', blue: '#4285F4', yellow: '#FBBC05', green: '#34A853', backdrop: '#FFFFFF' },
+} as const;
+
 export const status = {
   light: { danger: '#B53333', success: '#2A7247' },
   dark: { danger: '#F28B82', success: '#74D19A' },

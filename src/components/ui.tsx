@@ -239,6 +239,7 @@ export function Row({
   onPress,
   selected,
   disabled,
+  leading,
   trailing,
 }: {
   title: string;
@@ -246,6 +247,7 @@ export function Row({
   onPress?: () => void;
   selected?: boolean;
   disabled?: boolean; // shown but not choosable (e.g. "Coming soon")
+  leading?: ReactNode; // e.g. a team logo, before the title
   trailing?: ReactNode;
 }) {
   const styles = useStyles();
@@ -264,6 +266,7 @@ export function Row({
         focused && !selected && styles.focused,
       ]}
     >
+      {leading}
       <View style={styles.fill}>
         <Text variant="bodyStrong" tone={disabled ? 'muted' : 'default'}>
           {title}
@@ -288,7 +291,7 @@ export function Chips<T extends string>({
 }: {
   label: string;
   value: T;
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; icon?: ReactNode }[];
   onChange: (v: T) => void;
 }) {
   const styles = useStyles();
@@ -317,6 +320,7 @@ export function Chips<T extends string>({
             ]}
           >
             {active ? <HoloFill /> : null}
+            {o.icon}
             <Text variant="labelSmall" tone={active ? 'onAction' : 'default'}>
               {o.label}
             </Text>
@@ -485,6 +489,8 @@ const useStyles = makeStyles((t) => ({
   chipsScroll: { marginTop: t.space.md, marginHorizontal: -t.space.md },
   chips: { gap: t.space.sm, paddingHorizontal: t.space.md },
   chip: {
+    flexDirection: 'row',
+    gap: t.space.xs + t.space.xxs,
     minHeight: t.size.segment,
     paddingHorizontal: t.space.md,
     borderRadius: t.size.segment / 2,

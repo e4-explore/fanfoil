@@ -13,6 +13,7 @@ export type Team = {
   abbreviation: string;
   conference: string | null;
   logo_url: string | null;
+  logo_dark_url: string | null;
 };
 
 // Vaulted tiers are value levels of real graded cards; role/storyline are

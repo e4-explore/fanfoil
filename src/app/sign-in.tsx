@@ -2,6 +2,7 @@ import { Redirect } from 'expo-router';
 import { Fragment, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
+import { SocialButton } from '@/components/SocialButton';
 import { Button, Field, Lede, Notice, Screen, Text, Title } from '@/components/ui';
 import { useAuth, type OAuthProvider } from '@/providers/auth';
 import { makeStyles } from '@/theme';
@@ -66,20 +67,8 @@ export default function SignIn() {
       {/* Keyed per view so controls never carry focus/press state across them. */}
       {step === 'email' ? (
         <Fragment key="email">
-          <Button
-            label="Continue with Google"
-            variant="secondary"
-            style={styles.first}
-            loading={busy === 'google'}
-            onPress={() => provider('google')}
-          />
-          <Button
-            label="Continue with Apple"
-            variant="secondary"
-            style={styles.gapSmall}
-            loading={busy === 'apple'}
-            onPress={() => provider('apple')}
-          />
+          <SocialButton provider="google" style={styles.first} loading={busy === 'google'} onPress={() => provider('google')} />
+          <SocialButton provider="apple" style={styles.gapSmall} loading={busy === 'apple'} onPress={() => provider('apple')} />
 
           <View style={styles.divider}>
             <View style={styles.rule} />
