@@ -42,7 +42,7 @@ export default function PickTeam() {
 
   const goBack = () => {
     if (router.canGoBack()) router.back();
-    else router.replace(switching ? '/profile' : '/onboarding/sport');
+    else router.replace(switching ? '/profile' : '/onboarding/league');
   };
 
   const groups = useMemo(() => {

@@ -38,7 +38,7 @@ export function hasPassword(session: Session | null) {
 
 // Where a signed-in person belongs once any sign-in prompts are done.
 export function nextStep(profile: Profile) {
-  if (!profile.followed_team_id) return '/onboarding/sport' as const;
+  if (!profile.followed_team_id) return '/onboarding/league' as const;
   if (!profile.onboarding_claimed_at) return '/onboarding/claim' as const;
   return '/collection' as const;
 }

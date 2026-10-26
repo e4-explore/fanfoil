@@ -25,6 +25,22 @@ insert into public.sports (slug, name, sort_order) values ('basketball', 'Basket
 insert into public.leagues (sport_id, slug, name, short_name, sort_order)
 select id, 'nba', 'National Basketball Association', 'NBA', 1 from public.sports where slug = 'basketball';
 
+-- Coming soon: listed (inactive) in onboarding so fans see what's next.
+-- Launching one = add its teams and cards, then set is_active = true.
+insert into public.sports (slug, name, is_active, sort_order) values
+  ('football', 'Football', false, 2),
+  ('baseball', 'Baseball', false, 3),
+  ('soccer',   'Soccer',   false, 4);
+
+insert into public.leagues (sport_id, slug, name, short_name, is_active, sort_order)
+select s.id, l.slug, l.name, l.short_name, false, l.sort_order
+from (values
+  ('football', 'nfl',            'National Football League', 'NFL',            2),
+  ('baseball', 'mlb',            'Major League Baseball',    'MLB',            3),
+  ('soccer',   'premier-league', 'English Premier League',   'Premier League', 4)
+) as l(sport, slug, name, short_name, sort_order)
+join public.sports s on s.slug = l.sport;
+
 insert into public.teams (league_id, slug, name, location, nickname, abbreviation, conference)
 select l.id, t.slug, t.location || ' ' || t.nickname, t.location, t.nickname, t.abbr, t.conf
 from public.leagues l

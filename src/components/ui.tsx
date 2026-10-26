@@ -225,22 +225,26 @@ export function Row({
   detail,
   onPress,
   selected,
+  disabled,
   trailing,
 }: {
   title: string;
   detail?: string;
-  onPress: () => void;
+  onPress?: () => void;
   selected?: boolean;
+  disabled?: boolean; // shown but not choosable (e.g. "Coming soon")
   trailing?: ReactNode;
 }) {
   const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected: !!selected }}
+      accessibilityState={{ selected: !!selected, disabled: !!disabled }}
       onPress={onPress}
+      disabled={disabled}
       style={({ pressed, focused }: { pressed: boolean; focused?: boolean }) => [
         styles.row,
+        disabled && styles.rowDisabled,
         selected && styles.rowSelected,
         pressed && styles.rowPressed,
         // The selected border already marks it; don't stack a second ring.
@@ -248,7 +252,9 @@ export function Row({
       ]}
     >
       <View style={styles.fill}>
-        <Text variant="bodyStrong">{title}</Text>
+        <Text variant="bodyStrong" tone={disabled ? 'muted' : 'default'}>
+          {title}
+        </Text>
         {detail ? (
           <Text variant="small" tone="muted">
             {detail}
@@ -257,6 +263,18 @@ export function Row({
       </View>
       {trailing}
     </Pressable>
+  );
+}
+
+// Small pill label, e.g. "Coming soon".
+export function Tag({ label }: { label: string }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.tag}>
+      <Text variant="smallStrong" tone="muted">
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -400,6 +418,15 @@ const useStyles = makeStyles((t) => ({
     paddingVertical: t.space.sm - 1,
   },
   rowPressed: { backgroundColor: t.color.sunken },
+  // No opacity fade: muted text on the sunken surface still meets contrast.
+  rowDisabled: { backgroundColor: t.color.sunken },
+  tag: {
+    paddingHorizontal: t.space.sm,
+    paddingVertical: t.space.xxs,
+    borderRadius: t.radius.md,
+    borderWidth: 1,
+    borderColor: t.color.border,
+  },
   segmented: {
     flexDirection: 'row',
     gap: t.space.xxs,

@@ -9,7 +9,7 @@ export default function TabsLayout() {
   const t = useTheme();
   if (initializing || profileLoading) return <Loading />;
   if (!session) return <Redirect href="/sign-in" />;
-  if (profile && !profile.followed_team_id) return <Redirect href="/onboarding/sport" />;
+  if (profile && !profile.followed_team_id) return <Redirect href="/onboarding/league" />;
 
   return (
     <Tabs

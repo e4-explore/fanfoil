@@ -1,9 +1,7 @@
 // Shapes returned by the database. Kept by hand for now; once the schema
 // settles, generate them with `npx supabase gen types typescript --local`.
 
-export type Sport = { id: string; slug: string; name: string };
-
-export type League = { id: string; sport_id: string; slug: string; name: string; short_name: string };
+export type League = { id: string; sport_id: string; slug: string; name: string; short_name: string; is_active: boolean };
 
 export type Team = {
   id: string;

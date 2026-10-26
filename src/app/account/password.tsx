@@ -27,7 +27,7 @@ export default function PasswordScreen() {
 
   // Go straight to the next step rather than back through the index route,
   // which could still see the pre-update session and show this prompt again.
-  const continueOn = () => router.replace(profile ? nextStep(profile) : '/onboarding/sport');
+  const continueOn = () => router.replace(profile ? nextStep(profile) : '/onboarding/league');
 
   const run = async (key: 'save' | 'skip', fn: () => Promise<void>) => {
     setBusy(key);

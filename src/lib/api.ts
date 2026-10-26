@@ -3,7 +3,7 @@
 
 import { toAppError } from './errors';
 import { supabase } from './supabase';
-import type { InventoryItem, League, Offer, OwnedCollectible, Profile, Sport, Team, Tier } from './types';
+import type { InventoryItem, League, Offer, OwnedCollectible, Profile, Team, Tier } from './types';
 
 async function run<T>(promise: PromiseLike<{ data: T | null; error: unknown }>): Promise<T> {
   const { data, error } = await promise;
@@ -12,16 +12,13 @@ async function run<T>(promise: PromiseLike<{ data: T | null; error: unknown }>):
 }
 
 export const api = {
-  sports: () =>
-    run<Sport[]>(supabase.from('sports').select('id, slug, name').eq('is_active', true).order('sort_order')),
-
-  leagues: (sportId: string) =>
+  // Every league, live ones first. Inactive leagues show as "coming soon".
+  leagues: () =>
     run<League[]>(
       supabase
         .from('leagues')
-        .select('id, sport_id, slug, name, short_name')
-        .eq('sport_id', sportId)
-        .eq('is_active', true)
+        .select('id, sport_id, slug, name, short_name, is_active')
+        .order('is_active', { ascending: false })
         .order('sort_order'),
     ),
 
