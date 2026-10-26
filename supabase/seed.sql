@@ -22,15 +22,16 @@ insert into public.collectible_tiers (slug, name, description, kind, rarity_rank
   ('role',      'Role',      'A Fanfoil Original. Original art, only 50 of each.',                 'original', 5, 50),
   ('storyline', 'Storyline', 'A Fanfoil Original moment. Original art, only 10 of each.',          'original', 6, 10);
 
--- The free first claim draws real vaulted cards from the fan's team. Weight
--- = copies left x multiplier, so with one copy each a Mid card is 1/10 as
--- likely as a Starter. Premium, Grail and Originals are kept out of the free
--- pool (0) to cap what each sign-up costs. Change these rows, not code.
+-- Odds for the free first claim. Each of the 3 cards shown rolls a tier with
+-- these relative weights (90 / 10 = 90% Starter, 10% Mid), then a random
+-- unclaimed card of that tier from the fan's team. Same odds for every team;
+-- the claim screen shows them. Premium, Grail and Originals are kept out of
+-- the free pool (0) to cap what each sign-up costs. Change rows, not code.
 -- The claim is free (no purchase), so it isn't a lottery; any paid pack later
 -- needs a free entry route with identical odds.
-insert into public.offer_rules (source, tier, weight_multiplier) values
-  ('onboarding', 'vault_starter', 1),
-  ('onboarding', 'vault_mid',     0.1),
+insert into public.offer_rules (source, tier, tier_weight) values
+  ('onboarding', 'vault_starter', 90),
+  ('onboarding', 'vault_mid',     10),
   ('onboarding', 'vault_premium', 0),
   ('onboarding', 'vault_grail',   0),
   ('onboarding', 'role',          0),

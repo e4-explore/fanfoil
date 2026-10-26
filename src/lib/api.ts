@@ -52,6 +52,24 @@ export const api = {
 
   followTeam: (teamId: string) => run<Profile>(supabase.rpc('follow_team', { p_team_id: teamId })),
 
+  // Published odds per offer slot, e.g. [{ name: 'Starter', percent: 90 }, ...].
+  offerOdds: async (source: 'onboarding') => {
+    const [rules, tiers] = await Promise.all([
+      run<{ tier: string; tier_weight: number }[]>(
+        supabase.from('offer_rules').select('tier, tier_weight').eq('source', source).gt('tier_weight', 0),
+      ),
+      run<{ slug: string; name: string; rarity_rank: number }[]>(
+        supabase.from('collectible_tiers').select('slug, name, rarity_rank'),
+      ),
+    ]);
+    const bySlug = new Map(tiers.map((t) => [t.slug, t]));
+    const total = rules.reduce((sum, r) => sum + Number(r.tier_weight), 0);
+    return rules
+      .filter((r) => bySlug.has(r.tier))
+      .sort((a, b) => bySlug.get(a.tier)!.rarity_rank - bySlug.get(b.tier)!.rarity_rank)
+      .map((r) => ({ name: bySlug.get(r.tier)!.name, percent: Math.round((Number(r.tier_weight) / total) * 100) }));
+  },
+
   onboardingOffer: () => run<Offer>(supabase.rpc('get_onboarding_offer')),
 
   claim: (offerId: string, collectibleId: string) =>

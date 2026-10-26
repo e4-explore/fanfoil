@@ -32,6 +32,7 @@ export default function ClaimFirstCard() {
     enabled: !!profile?.followed_team_id && !profile?.onboarding_claimed_at,
     staleTime: Infinity,
   });
+  const odds = useQuery({ queryKey: ['offer-odds', 'onboarding'], queryFn: () => api.offerOdds('onboarding') });
 
   // Keep reveals for cards still on offer; a swapped-in card starts face-down.
   useEffect(() => {
@@ -153,6 +154,11 @@ export default function ClaimFirstCard() {
           ? 'Three real graded cards from your team’s roster, held in the vault. Reveal them, then keep one. You only get to pick once.'
           : 'Three cards from your team’s roster. Reveal them, then keep one. You only get to pick once.'}
       </Lede>
+      {odds.data?.length ? (
+        <Text variant="small" tone="muted" style={styles.odds}>
+          {`Odds per card: ${odds.data.map((o) => `${o.name} ${o.percent}%`).join(' · ')}`}
+        </Text>
+      ) : null}
       {options.some((o) => o.is_sample) ? (
         <Notice text="These are sample cards for testing. Real graded cards replace them before launch." />
       ) : null}
@@ -166,7 +172,7 @@ export default function ClaimFirstCard() {
             <Pressable
               key={item.id}
               accessibilityRole="button"
-              accessibilityLabel={isRevealed ? `${item.name}. Select to claim.` : 'Face-down card. Reveal.'}
+              accessibilityLabel={isRevealed ? `Select ${item.name} to claim` : 'Face-down card. Reveal.'}
               accessibilityState={{ selected: isSelected }}
               onPress={() => onCardPress(item)}
               style={[styles.slot, isSelected && styles.slotSelected]}
@@ -209,6 +215,7 @@ const useStyles = makeStyles((t) => ({
   description: { marginTop: t.space.xs },
   remaining: { marginTop: t.space.sm },
   hint: { marginTop: t.space.lg },
+  odds: { marginTop: t.space.sm },
   action: { marginTop: t.space.md },
   hero: { alignItems: 'center', marginVertical: t.space.xl },
 }));
