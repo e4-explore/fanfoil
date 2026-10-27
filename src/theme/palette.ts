@@ -74,6 +74,13 @@ export const holo = {
   // below the holographic primary. Ink is 4.7:1 light, 7.6:1 dark.
   secondary: { light: '#7761DB', dark: '#AD99F7' },
   secondaryInk: { light: '#FFFFFF', dark: '#141413' },
+  // Selection and focus outlines: pinks into purples, like the primary
+  // button. Deeper in light mode, brighter in dark; every stop is 4:1 or
+  // better on the surfaces it sits on (3:1 needed).
+  ring: {
+    light: ['#E0267D', '#C026D3', '#9333EA', '#7C3AED'],
+    dark: ['#FF5FB0', '#E879F9', '#C084FC', '#A78BFA'],
+  },
   // Faint accent wash inside selected chips.
   tint: { light: 'rgba(106,79,216,0.08)', dark: 'rgba(185,166,255,0.14)' },
 } as const;

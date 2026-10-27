@@ -41,12 +41,13 @@ export function Text({
 // outline on web so the two don't stack.
 export const noBrowserOutline = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as unknown as ViewStyle; // 'none' is web-only, so not in RN's types
 
-// Keyboard focus on any control: the holographic gradient as an outline just
-// outside the control (same language as the selected state). Drawn as an SVG
-// stroke so it's a true outline, transparent inside.
-export function FocusRing({ radius: r, offset = 3 }: { radius: number; offset?: number }) {
+// A 2px gradient outline (t.ring: pinks into purples, the primary button's
+// colors) drawn as one SVG stroke, so it's a true outline that stays even on
+// every platform. `offset` moves it outward from the host's edge (negative
+// moves it in, e.g. to sit over the host's own border).
+export function GradientRing({ radius: r, offset = 0 }: { radius: number; offset?: number }) {
   const t = useTheme();
-  const id = `focus${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const id = `ring${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const [box, setBox] = useState<{ width: number; height: number } | null>(null);
   const stroke = 2;
   return (
@@ -59,8 +60,8 @@ export function FocusRing({ radius: r, offset = 3 }: { radius: number; offset?: 
         <Svg width={box.width} height={box.height}>
           <Defs>
             <SvgGradient id={id} x1="0" y1="0" x2="1" y2="1">
-              {t.holo.map((color, i) => (
-                <Stop key={color} offset={i / (t.holo.length - 1)} stopColor={color} />
+              {t.ring.map((color, i) => (
+                <Stop key={color} offset={i / (t.ring.length - 1)} stopColor={color} />
               ))}
             </SvgGradient>
           </Defs>
@@ -69,7 +70,7 @@ export function FocusRing({ radius: r, offset = 3 }: { radius: number; offset?: 
             y={stroke / 2}
             width={box.width - stroke}
             height={box.height - stroke}
-            rx={r + offset - stroke / 2}
+            rx={Math.max(0, r + offset - stroke / 2)}
             fill="none"
             stroke={`url(#${id})`}
             strokeWidth={stroke}
@@ -78,4 +79,10 @@ export function FocusRing({ radius: r, offset = 3 }: { radius: number; offset?: 
       ) : null}
     </View>
   );
+}
+
+// Keyboard focus on any control: the gradient outline just outside the
+// control (same look as the selected state).
+export function FocusRing({ radius, offset = 3 }: { radius: number; offset?: number }) {
+  return <GradientRing radius={radius} offset={offset} />;
 }

@@ -60,6 +60,7 @@ function build(mode: 'light' | 'dark') {
       onAction: holo.ink,
     },
     holo: holo.stops,
+    ring: holo.ring[mode],
     primary: primaryButton,
     glass: glass[mode],
     social: { ...social[mode], googleG: social.googleG },

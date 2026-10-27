@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HoloButton } from '@/components/HoloButton';
-import { FocusRing, noBrowserOutline, Text, type Tone } from '@/components/primitives';
+import { FocusRing, GradientRing, noBrowserOutline, Text, type Tone } from '@/components/primitives';
 import { makeStyles, radius, size, useTheme } from '@/theme';
 
 export { FocusRing, noBrowserOutline, Text };
@@ -330,31 +330,20 @@ export function Chips<T extends string>({
   );
 }
 
-// The selected state for chips, segments, and rows: the holographic gradient
-// as a 2px ring around a lightly tinted inside. Drawn over the host's own
-// border (`border`, its width) so selecting never shifts the content.
+// The selected state for chips, segments, and rows: the gradient outline
+// around a lightly tinted inside. Drawn over the host's own border (`border`,
+// its width) so selecting never shifts the content.
 function SelectionRing({ radius, border = 0 }: { radius: number; border?: number }) {
   const styles = useStyles();
-  const t = useTheme();
-  const ring = 2;
   return (
     <>
-      <LinearGradient
-        colors={t.holo}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.ringOuter, { top: -border, right: -border, bottom: -border, left: -border, borderRadius: radius }]}
-        pointerEvents="none"
-      />
       <View
-        style={[
-          styles.ringInner,
-          { top: ring - border, right: ring - border, bottom: ring - border, left: ring - border, borderRadius: radius - ring },
-        ]}
+        style={[styles.ringFill, { top: -border, right: -border, bottom: -border, left: -border, borderRadius: radius }]}
         pointerEvents="none"
       >
         <View style={styles.ringTint} />
       </View>
+      <GradientRing radius={radius - border} offset={border} />
     </>
   );
 }
@@ -524,8 +513,7 @@ const useStyles = makeStyles((t) => ({
     justifyContent: 'center',
   },
   chipActive: { borderColor: 'transparent' },
-  ringOuter: { position: 'absolute', overflow: 'hidden' },
-  ringInner: { position: 'absolute', backgroundColor: t.color.surface, overflow: 'hidden' },
+  ringFill: { position: 'absolute', backgroundColor: t.color.surface, overflow: 'hidden' },
   ringTint: { flex: 1, backgroundColor: t.color.accentTint },
   tag: {
     paddingHorizontal: t.space.sm,

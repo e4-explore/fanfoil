@@ -94,13 +94,16 @@ function Guide({ label }: { label?: string }) {
         ))}
       </Section>
 
-      <Section title="Holographic" note="t.holo: the foil rainbow (primary button foil, selection and focus rings, Yours banner). t.color.accent: the solid stand-in (borders, spinners, active tab).">
+      <Section title="Holographic" note="t.holo: the foil rainbow (primary button foil, Yours banner). t.ring: pinks into purples for the selection and focus outlines. t.color.accent: the solid stand-in (borders, spinners, active tab).">
         <View style={styles.holo}>
           <HoloFill />
         </View>
         <Text variant="small" tone="muted">
           {t.holo.join('  →  ')}
         </Text>
+        {t.ring.map((value, i) => (
+          <Swatch key={value} name={`ring[${i}]`} value={value} />
+        ))}
       </Section>
 
       <Section title="Primary button" note="t.primary: violet base under the holographic foil, white label, glare, shine, and drop shadow. The same in light and dark.">

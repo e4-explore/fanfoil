@@ -58,6 +58,9 @@
     "components/HoloButton.tsx",
     "components/ui.tsx"
   ],
+  "primitives.GradientRing": [
+    "components/ui.tsx"
+  ],
   "primitives.Text": [
     "components/HoloButton.tsx",
     "components/ui.tsx"
