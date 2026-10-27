@@ -52,7 +52,7 @@ export const api = {
 
   followTeam: (teamId: string) => run<Profile>(supabase.rpc('follow_team', { p_team_id: teamId })),
 
-  // Published odds per offer slot, e.g. [{ name: 'Starter', percent: 90 }, ...].
+  // Published odds per offer slot, e.g. [{ name: 'Base', percent: 90 }, ...].
   offerOdds: async (source: 'onboarding') => {
     const [rules, tiers] = await Promise.all([
       run<{ tier: string; tier_weight: number }[]>(

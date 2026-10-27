@@ -9,9 +9,14 @@
 -- per card type, one vault_items row per physical copy (total_supply must
 -- equal the number of copies).
 --
--- Value tier is spread deterministically from the player's name so reseeding
--- gives the same result (~70% Starter, 20% Mid, 8% Premium, 2% Grail).
--- Sample edition sizes: Starter 50, Mid 25, Premium 10, Grail 1.
+-- Value tier follows the player ranking (players.rank, set by
+-- nba_player_rankings_2026_27.sql), so better players are rarer:
+--   Grail    league top 10                          1 copy
+--   Premium  league 11-40                          10 copies
+--   Mid      each team's top 5 not already above   25 copies
+--   Base     everyone else, including unranked     50 copies
+-- "Each team's top 5" means every team's real core is rarer than its bench.
+-- Grade and value still vary deterministically by name within a tier.
 -- =============================================================================
 
 insert into public.collectibles
@@ -26,23 +31,28 @@ select
   tm.league_id, tm.id, '2026-27', x.supply,
   p.id, '2025-26', 'Sample Set', '#' || coalesce(p.jersey, '0'), 'PSA', x.grade,
   x.value_cents, true
-from public.players p
+from (
+  select pl.*, rank() over (partition by pl.team_id order by pl.rank nulls last) as team_rank
+  from public.players pl
+) p
 join public.teams tm on tm.id = p.team_id
 cross join lateral (
-  select abs(hashtext(p.full_name)) % 100 as roll, abs(hashtext(p.full_name || '#')) % 1000 as jitter
+  select
+    case when p.rank <= 10 then 4
+         when p.rank <= 40 then 3
+         when p.rank is not null and p.team_rank <= 5 then 2
+         else 1 end as level,
+    abs(hashtext(p.full_name || '#')) % 1000 as jitter
 ) h
 cross join lateral (
   select
-    case when h.roll < 70 then 'vault_starter'
-         when h.roll < 90 then 'vault_mid'
-         when h.roll < 98 then 'vault_premium'
-         else 'vault_grail' end as tier,
-    case when h.roll < 70 then 50 when h.roll < 90 then 25 when h.roll < 98 then 10 else 1 end as supply,
+    (array['vault_starter', 'vault_mid', 'vault_premium', 'vault_grail'])[h.level] as tier,
+    (array[50, 25, 10, 1])[h.level] as supply,
     case when h.jitter % 3 = 0 then '10' when h.jitter % 3 = 1 then '9' else '8' end as grade,
-    case when h.roll < 70 then 2500 + h.jitter * 5        -- $25-$75
-         when h.roll < 90 then 10000 + h.jitter * 20      -- $100-$300
-         when h.roll < 98 then 50000 + h.jitter * 100     -- $500-$1,500
-         else 300000 + h.jitter * 500 end as value_cents  -- $3,000-$8,000
+    case h.level when 1 then 2500 + h.jitter * 5        -- $25-$75
+                 when 2 then 10000 + h.jitter * 20      -- $100-$300
+                 when 3 then 50000 + h.jitter * 100     -- $500-$1,500
+                 else 300000 + h.jitter * 500 end as value_cents  -- $3,000-$8,000
 ) x;
 
 -- One sample physical copy per unit of supply: SAMPLE-<type>-<copy>.

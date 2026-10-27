@@ -15,7 +15,7 @@
 -- =============================================================================
 
 insert into public.collectible_tiers (slug, name, description, kind, rarity_rank, default_supply) values
-  ('vault_starter', 'Starter', 'A real graded card from the vault. Where most collections begin.', 'vaulted', 1, 1),
+  ('vault_starter', 'Base', 'A real graded card from the vault. Where most collections begin.', 'vaulted', 1, 1),
   ('vault_mid',     'Mid',     'A real graded card with more value behind it.',                    'vaulted', 2, 1),
   ('vault_premium', 'Premium', 'A high-value graded card. Rare to land.',                          'vaulted', 3, 1),
   ('vault_grail',   'Grail',   'The top of the vault.',                                            'vaulted', 4, 1),
@@ -23,7 +23,7 @@ insert into public.collectible_tiers (slug, name, description, kind, rarity_rank
   ('storyline', 'Storyline', 'A Fanfoil Original moment. Original art, only 10 of each.',          'original', 6, 10);
 
 -- Odds for the free first claim. Each of the 3 cards shown rolls a tier with
--- these relative weights (90 / 10 = 90% Starter, 10% Mid), then a random
+-- these relative weights (90 / 10 = 90% Base, 10% Mid), then a random
 -- unclaimed card of that tier from the fan's team. Same odds for every team;
 -- the claim screen shows them. Premium, Grail and Originals are kept out of
 -- the free pool (0) to cap what each sign-up costs. Change rows, not code.
