@@ -11,7 +11,7 @@
 import { createContext, createElement, useContext, type ReactNode } from 'react';
 import { StyleSheet, useColorScheme, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 
-import { card, glass, holo, neutrals, social, status } from './palette';
+import { card, glass, holo, neutrals, primaryButton, social, status } from './palette';
 
 export const fonts = {
   display: 'BarlowCondensed_700Bold', // titles and headings
@@ -44,6 +44,7 @@ export const size = {
   row: 60,          // list rows
   segment: 40,      // segmented control options
   tabBar: 64,       // floating tab bar height
+  primary: 56,      // primary (holographic) button height
   maxContent: 560,  // readable column on web and tablets
 } as const;
 
@@ -59,7 +60,7 @@ function build(mode: 'light' | 'dark') {
       onAction: holo.ink,
     },
     holo: holo.stops,
-    holoFx: { shadeTop: holo.shadeTop, shadeBottom: holo.shadeBottom, texture: holo.texture, sheen: holo.sheen },
+    primary: primaryButton,
     glass: glass[mode],
     social: { ...social[mode], googleG: social.googleG },
     statusBar: mode === 'dark' ? ('light' as const) : ('dark' as const),

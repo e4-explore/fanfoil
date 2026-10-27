@@ -1,54 +1,28 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useId, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Platform,
   Pressable,
-  Text as RNText,
   ScrollView,
   StyleSheet,
   TextInput,
   View,
   type StyleProp,
   type TextInputProps,
-  type TextProps,
-  type TextStyle,
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-native-svg';
 
-import { HoloSurface, useHoloPointer } from '@/components/HoloSurface';
-import { makeStyles, radius, size, useTheme, type Theme, type TypeVariant } from '@/theme';
+import { HoloButton } from '@/components/HoloButton';
+import { FocusRing, noBrowserOutline, Text, type Tone } from '@/components/primitives';
+import { makeStyles, radius, size, useTheme } from '@/theme';
+
+export { FocusRing, noBrowserOutline, Text };
 
 // ---------------------------------------------------------------------------
-// Text: the only way screens render text. Pick a variant from the type scale
-// and a tone; no font sizes or colors at the call site.
+// Text: Text itself lives in primitives.tsx; these are the fixed roles.
 // ---------------------------------------------------------------------------
-
-type Tone = 'default' | 'muted' | 'danger' | 'success' | 'accent' | 'onAction' | 'onAccent';
-
-const toneColor = (t: Theme, tone: Tone) =>
-  ({
-    default: t.color.text,
-    muted: t.color.textMuted,
-    danger: t.color.danger,
-    success: t.color.success,
-    accent: t.color.accent,
-    onAction: t.color.onAction, // on the holographic surface
-    onAccent: t.color.onAccent, // on a solid accent fill
-  })[tone];
-
-export function Text({
-  variant = 'body',
-  tone = 'default',
-  align,
-  style,
-  ...rest
-}: TextProps & { variant?: TypeVariant; tone?: Tone; align?: TextStyle['textAlign']; style?: StyleProp<TextStyle> }) {
-  const t = useTheme();
-  return <RNText style={[t.type[variant], { color: toneColor(t, tone), textAlign: align }, style]} {...rest} />;
-}
 
 export function Title({ children }: { children: ReactNode }) {
   return (
@@ -125,48 +99,6 @@ export function HoloFill() {
 
 type PressState = { pressed: boolean; focused?: boolean };
 
-// Controls draw FocusRing themselves; this turns off the browser's own focus
-// outline on web so the two don't stack.
-export const noBrowserOutline = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as unknown as ViewStyle; // 'none' is web-only, so not in RN's types
-
-// Keyboard focus on any control: the holographic gradient as an outline just
-// outside the control (same language as the selected state). Drawn as an SVG
-// stroke so it's a true outline, transparent inside.
-export function FocusRing({ radius: r, offset = 3 }: { radius: number; offset?: number }) {
-  const t = useTheme();
-  const id = `focus${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
-  const [box, setBox] = useState<{ width: number; height: number } | null>(null);
-  const stroke = 2;
-  return (
-    <View
-      pointerEvents="none"
-      style={{ position: 'absolute', top: -offset, right: -offset, bottom: -offset, left: -offset }}
-      onLayout={(e) => setBox(e.nativeEvent.layout)}
-    >
-      {box ? (
-        <Svg width={box.width} height={box.height}>
-          <Defs>
-            <SvgGradient id={id} x1="0" y1="0" x2="1" y2="1">
-              {t.holo.map((color, i) => (
-                <Stop key={color} offset={i / (t.holo.length - 1)} stopColor={color} />
-              ))}
-            </SvgGradient>
-          </Defs>
-          <Rect
-            x={stroke / 2}
-            y={stroke / 2}
-            width={box.width - stroke}
-            height={box.height - stroke}
-            rx={r + offset - stroke / 2}
-            fill="none"
-            stroke={`url(#${id})`}
-            strokeWidth={stroke}
-          />
-        </Svg>
-      ) : null}
-    </View>
-  );
-}
 
 // Top-left of a screen, above the title.
 export function BackButton({
@@ -216,38 +148,37 @@ export function Button({
   inline?: boolean; // hug the label (left-aligned links like "Show password")
   style?: StyleProp<ViewStyle>;
 }) {
-  // primary    holographic, textured; colors and sheen follow hover / tap
+  // primary    HoloButton: violet base with a holographic foil (see HoloButton)
   // secondary  solid accent
   // quiet      outlined surface
   // Disabled: the same look at 40% opacity.
   const styles = useStyles();
   const t = useTheme();
+  if (variant === 'primary') {
+    return <HoloButton label={label} onPress={onPress} disabled={disabled} loading={loading} style={style} />;
+  }
   const isDisabled = disabled || loading;
-  const primary = variant === 'primary';
-  const { handlers, surface } = useHoloPointer();
-  const tone: Tone = primary ? 'onAction' : variant === 'secondary' ? 'onAccent' : 'default';
-  const spinner = primary ? t.color.onAction : variant === 'secondary' ? t.color.onAccent : t.color.text;
+  const tone: Tone = variant === 'secondary' ? 'onAccent' : 'default';
+  const spinner = variant === 'secondary' ? t.color.onAccent : t.color.text;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled: !!isDisabled, busy: !!loading }}
       onPress={onPress}
       disabled={isDisabled}
-      {...(primary && !isDisabled ? handlers : primary ? { onLayout: handlers.onLayout } : {})}
       style={({ pressed }: PressState) => [
         styles.button,
         noBrowserOutline,
         variant === 'secondary' && styles.secondary,
         variant === 'quiet' && styles.quiet,
         inline && styles.inline,
-        pressed && !primary && styles.pressed,
+        pressed && styles.pressed,
         disabled && styles.disabled,
         style,
       ]}
     >
       {({ focused }: PressState) => (
         <>
-          {primary ? <HoloSurface {...surface} /> : null}
           {focused ? <FocusRing radius={radius.md} /> : null}
           {loading ? (
             <ActivityIndicator color={spinner} />

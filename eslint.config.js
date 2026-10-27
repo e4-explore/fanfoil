@@ -56,7 +56,7 @@ module.exports = defineConfig([
     rules: { 'no-restricted-syntax': 'off', 'no-restricted-imports': 'off' },
   },
   {
-    files: ['src/components/ui.tsx'],
+    files: ['src/components/ui.tsx', 'src/components/primitives.tsx'],
     rules: { 'no-restricted-imports': 'off' },
   },
   // Card art scales its own typography with card width and is the same in both

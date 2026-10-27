@@ -36,14 +36,11 @@
     "app/(tabs)/inventory.tsx",
     "app/(tabs)/profile.tsx"
   ],
+  "HoloButton.HoloButton": [
+    "components/ui.tsx"
+  ],
   "HoloCard.HoloCard": [
     "components/CollectibleCard.tsx"
-  ],
-  "HoloSurface.HoloSurface": [
-    "components/ui.tsx"
-  ],
-  "HoloSurface.useHoloPointer": [
-    "components/ui.tsx"
   ],
   "SlabCard.SlabCard": [
     "components/CollectibleCard.tsx"
@@ -56,6 +53,21 @@
     "app/(tabs)/profile.tsx",
     "app/card/[id].tsx",
     "app/onboarding/team.tsx"
+  ],
+  "primitives.FocusRing": [
+    "components/HoloButton.tsx",
+    "components/ui.tsx"
+  ],
+  "primitives.Text": [
+    "components/HoloButton.tsx",
+    "components/ui.tsx"
+  ],
+  "primitives.Tone": [
+    "components/ui.tsx"
+  ],
+  "primitives.noBrowserOutline": [
+    "components/HoloButton.tsx",
+    "components/ui.tsx"
   ],
   "sharedTilt.useSharedTilt": [
     "components/HoloCard.tsx"
@@ -83,6 +95,10 @@
     "app/account/password.tsx",
     "app/onboarding/team.tsx",
     "app/sign-in.tsx"
+  ],
+  "ui.FocusRing": [
+    "components/GlassTabBar.tsx",
+    "components/SocialButton.tsx"
   ],
   "ui.Lede": [
     "app/account/password.tsx",
@@ -163,5 +179,9 @@
     "app/onboarding/league.tsx",
     "app/onboarding/team.tsx",
     "app/sign-in.tsx"
+  ],
+  "ui.noBrowserOutline": [
+    "components/GlassTabBar.tsx",
+    "components/SocialButton.tsx"
   ]
 }

@@ -94,13 +94,20 @@ function Guide({ label }: { label?: string }) {
         ))}
       </Section>
 
-      <Section title="Holographic primary" note="t.holo stops (primary buttons, selections) and t.color.accent (borders, spinners, active tab).">
+      <Section title="Holographic" note="t.holo: the foil rainbow (primary button foil, selection and focus rings, Yours banner). t.color.accent: the solid stand-in (borders, spinners, active tab).">
         <View style={styles.holo}>
           <HoloFill />
         </View>
         <Text variant="small" tone="muted">
           {t.holo.join('  →  ')}
         </Text>
+      </Section>
+
+      <Section title="Primary button" note="t.primary: violet base under the holographic foil, white label, glare, shine, and drop shadow. The same in light and dark.">
+        {t.primary.base.map((value, i) => (
+          <Swatch key={value} name={`primary.base[${i}]`} value={value} />
+        ))}
+        <Swatch name="primary.ink" value={t.primary.ink} />
       </Section>
 
       <Section title="Glass" note="t.glass: the floating tab bar surface off iOS 26 (on iOS 26 the system Liquid Glass is used).">
@@ -186,7 +193,7 @@ function Guide({ label }: { label?: string }) {
         <Lede>Lede: the short intro under a title.</Lede>
       </Component>
 
-      <Component name="Button" uses={['ui.Button']} note="primary: holographic with depth; colors and sheen follow hover and tap. secondary: solid accent. quiet: outlined. Disabled = the same look at 40% opacity. inline hugs its label.">
+      <Component name="Button" uses={['ui.Button', 'HoloButton.HoloButton']} note="primary (HoloButton): violet base with a holographic foil and brushed texture; the foil, glare, and 3D tilt follow the pointer or finger and drift on their own; a shine sweeps every few seconds; releasing throws holo sparks. secondary: solid accent. quiet: outlined. Disabled = the same look at 40% opacity, still.">
         <Button label="Primary" onPress={noop} />
         <Button label="Primary disabled" disabled onPress={noop} style={styles.stack} />
         <Button label="Loading" loading onPress={noop} style={styles.stack} />

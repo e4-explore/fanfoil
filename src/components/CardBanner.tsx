@@ -16,7 +16,11 @@ export function CardBanner({ label, width, tone = 'neutral' }: { label: string; 
     <View style={styles.wrap} pointerEvents="none">
       <View style={[styles.band, !isHolo && styles.neutral, { paddingVertical: 10 * s }]}>
         {isHolo ? (
-          <LinearGradient colors={holo.stops} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+          <>
+            <LinearGradient colors={holo.stops} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            {/* Veil so the dark label reads on every stop (7:1 or better). */}
+            <View style={[StyleSheet.absoluteFill, styles.veil]} />
+          </>
         ) : null}
         <Text style={[styles.text, { color: isHolo ? holo.ink : card.banner.ink, fontSize: 26 * s, letterSpacing: 3 * s }]}>
           {label.toUpperCase()}
@@ -36,5 +40,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   neutral: { backgroundColor: card.banner.fill },
+  veil: { backgroundColor: card.banner.holoVeil },
   text: { fontFamily: fonts.displayHeavy },
 });

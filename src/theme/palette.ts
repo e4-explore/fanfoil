@@ -61,23 +61,32 @@ export const status = {
   dark: { danger: '#F28B82', success: '#74D19A' },
 } as const;
 
-// Holographic primary. Stops run cyan -> violet -> pink -> gold; dark ink
-// reads at 8:1 or better on every stop. `accent` is the solid stand-in for
-// places a gradient can't go (borders, spinners, tab tint).
+// Holographic gradient (selection and focus rings, "Yours" banner, and the
+// primary button's foil). Stops are the primary button's rainbow:
+// hsl(330 / 42 / 150 / 192 / 262, 100%, 62%). Text never sits directly on it;
+// the banner adds a white veil first (dark ink then reads 7:1 or better).
+// `accent` is the solid stand-in for places a gradient can't go.
 export const holo = {
-  stops: ['#8FD8F7', '#B9A6FF', '#F5A6DC', '#FFD68A'] as const,
+  stops: ['#FF3D9E', '#FFC53D', '#3DFF9E', '#3DD8FF', '#843DFF'] as const,
   ink: '#141413',
   accent: { light: '#6A4FD8', dark: '#B9A6FF' },
   // Text on a solid accent fill (secondary button): 5.6:1 light, 8.7:1 dark.
   accentInk: { light: '#FFFFFF', dark: '#141413' },
   // Faint accent wash inside selected chips.
   tint: { light: 'rgba(106,79,216,0.08)', dark: 'rgba(185,166,255,0.14)' },
-  // Depth on the primary button: a light-to-dark shade, a fine diagonal
-  // texture, and the moving sheen that follows the pointer or finger.
-  shadeTop: 'rgba(255,255,255,0.45)',
-  shadeBottom: 'rgba(20,20,19,0.14)',
-  texture: 'rgba(20,20,19,0.07)',
-  sheen: 'rgba(255,255,255,0.65)',
+} as const;
+
+// The primary button: a violet base under the holographic foil (overlay),
+// brushed texture, a glare that follows the pointer, and a looping shine.
+// White label: 5.7:1 on the middle of the base, where the text sits.
+export const primaryButton = {
+  base: ['#9965F1', '#7C3AED', '#592AAB'] as const,
+  ink: '#FFFFFF',
+  inkShadow: 'rgba(0,0,0,0.6)',
+  glare: 'rgba(255,255,255,0.95)',
+  shine: 'rgba(255,255,255,0.55)',
+  shadow: '0px 16px 30px -12px rgba(0,0,0,0.6), 0px 2px 6px rgba(0,0,0,0.3), inset 0px 1px 0px rgba(255,255,255,0.16)',
+  shadowPressed: '0px 6px 12px -8px rgba(0,0,0,0.6), 0px 1px 3px rgba(0,0,0,0.3), inset 0px 1px 0px rgba(255,255,255,0.1)',
 } as const;
 
 // The cards are physical-looking objects: same in light and dark mode.
@@ -95,7 +104,7 @@ export const card = {
   },
   // Bands across a card: "All claimed" (no copies left) and "Yours" (owned;
   // drawn on the holographic gradient with holo.ink).
-  banner: { fill: 'rgba(20,20,19,0.82)', ink: '#FAF9F5', edge: 'rgba(250,249,245,0.35)' },
+  banner: { fill: 'rgba(20,20,19,0.82)', ink: '#FAF9F5', edge: 'rgba(250,249,245,0.35)', holoVeil: 'rgba(255,255,255,0.40)' },
   // Vaulted cards: a plain frame around the unedited slab photo. The label is
   // Fanfoil's own neutral design (not any grader's label colors).
   slab: {
