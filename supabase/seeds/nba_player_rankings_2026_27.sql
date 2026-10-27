@@ -465,3 +465,26 @@ from (values
 join public.teams tm on tm.abbreviation = v.abbr
 join public.leagues l on l.id = tm.league_id and l.slug = 'nba'
 where p.team_id = tm.id and p.full_name = v.full_name;
+
+-- All-time greats: always Grail, whatever their current rank.
+-- On a 2026-27 roster and either on the NBA 75th Anniversary Team (2021) or
+-- a league MVP since (Jokic, Embiid, and Gilgeous-Alexander, the 2025 and
+-- 2026 MVP).
+update public.players p
+set all_time = true
+from (values
+  ('PHI', 'LeBron James'),
+  ('GSW', 'Stephen Curry'),
+  ('HOU', 'Kevin Durant'),
+  ('CLE', 'James Harden'),
+  ('MIA', 'Giannis Antetokounmpo'),
+  ('TOR', 'Kawhi Leonard'),
+  ('POR', 'Damian Lillard'),
+  ('WAS', 'Anthony Davis'),
+  ('DEN', 'Nikola Jokic'),
+  ('PHI', 'Joel Embiid'),
+  ('OKC', 'Shai Gilgeous-Alexander')
+) as v (abbr, full_name)
+join public.teams tm on tm.abbreviation = v.abbr
+join public.leagues l on l.id = tm.league_id and l.slug = 'nba'
+where p.team_id = tm.id and p.full_name = v.full_name;

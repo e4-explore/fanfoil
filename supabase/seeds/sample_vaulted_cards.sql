@@ -11,7 +11,7 @@
 --
 -- Value tier follows the player ranking (players.rank, set by
 -- nba_player_rankings_2026_27.sql), so better players are rarer:
---   Grail    league top 10                          1 copy
+--   Grail    all-time greats, plus league top 10    1 copy
 --   Premium  league 11-40                          10 copies
 --   Mid      each team's top 5 not already above   25 copies
 --   Base     everyone else, including unranked     50 copies
@@ -38,7 +38,7 @@ from (
 join public.teams tm on tm.id = p.team_id
 cross join lateral (
   select
-    case when p.rank <= 10 then 4
+    case when p.all_time or p.rank <= 10 then 4
          when p.rank <= 40 then 3
          when p.rank is not null and p.team_rank <= 5 then 2
          else 1 end as level,
