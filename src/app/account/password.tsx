@@ -69,7 +69,7 @@ export default function PasswordScreen() {
             onPress={save}
           />
           {prompting ? (
-            <Button label="Skip for now" variant="quiet" loading={busy === 'skip'} onPress={skip} />
+            <Button label="Skip for now" variant="minimal" loading={busy === 'skip'} onPress={skip} />
           ) : null}
         </>
       }

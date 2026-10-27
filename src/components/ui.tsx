@@ -142,7 +142,7 @@ export function Button({
 }: {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'quiet';
+  variant?: 'primary' | 'secondary' | 'quiet' | 'minimal';
   loading?: boolean;
   disabled?: boolean;
   inline?: boolean; // hug the label (left-aligned links like "Show password")
@@ -151,6 +151,7 @@ export function Button({
   // primary    HoloButton: violet base with a holographic foil (see HoloButton)
   // secondary  solid violet, a little softer than the accent
   // quiet      outlined surface
+  // minimal    no fill or outline, violet label (lesser actions under a main one)
   // Disabled: the same look at 40% opacity.
   const styles = useStyles();
   const t = useTheme();
@@ -158,8 +159,8 @@ export function Button({
     return <HoloButton label={label} onPress={onPress} disabled={disabled} loading={loading} style={style} />;
   }
   const isDisabled = disabled || loading;
-  const tone: Tone = variant === 'secondary' ? 'onSecondary' : 'default';
-  const spinner = variant === 'secondary' ? t.color.onSecondary : t.color.text;
+  const tone: Tone = variant === 'secondary' ? 'onSecondary' : variant === 'minimal' ? 'accent' : 'default';
+  const spinner = variant === 'secondary' ? t.color.onSecondary : variant === 'minimal' ? t.color.accent : t.color.text;
   return (
     <Pressable
       accessibilityRole="button"

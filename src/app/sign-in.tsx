@@ -119,8 +119,8 @@ export default function SignIn() {
             loading={busy === 'code'}
             onPress={() => attempt('code', () => verifyEmailCode(address, code))}
           />
-          <Button label="Use your password instead" variant="quiet" onPress={() => switchMethod('password')} />
-          <Button label="Use a different email" variant="quiet" onPress={startOver} />
+          <Button label="Use your password instead" variant="minimal" onPress={() => switchMethod('password')} />
+          <Button label="Use a different email" variant="minimal" onPress={startOver} />
         </Fragment>
       ) : (
         <Fragment key="password">
@@ -144,8 +144,8 @@ export default function SignIn() {
             loading={busy === 'password'}
             onPress={() => attempt('password', () => signInWithPassword(address, password))}
           />
-          <Button label="Use the emailed code instead" variant="quiet" onPress={() => switchMethod('code')} />
-          <Button label="Use a different email" variant="quiet" onPress={startOver} />
+          <Button label="Use the emailed code instead" variant="minimal" onPress={() => switchMethod('code')} />
+          <Button label="Use a different email" variant="minimal" onPress={startOver} />
         </Fragment>
       )}
 
