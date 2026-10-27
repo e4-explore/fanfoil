@@ -70,8 +70,10 @@ export const holo = {
   stops: ['#FF3D9E', '#FFC53D', '#3DFF9E', '#3DD8FF', '#843DFF'] as const,
   ink: '#141413',
   accent: { light: '#6A4FD8', dark: '#B9A6FF' },
-  // Text on a solid accent fill (secondary button): 5.6:1 light, 8.7:1 dark.
-  accentInk: { light: '#FFFFFF', dark: '#141413' },
+  // Secondary button: a soft tonal violet, so it reads as a step below the
+  // saturated primary. Ink is 8.4:1 light, 10.6:1 dark.
+  secondary: { light: '#E9E0FF', dark: '#3A2A63' },
+  secondaryInk: { light: '#4C1D95', dark: '#E4D9FF' },
   // Faint accent wash inside selected chips.
   tint: { light: 'rgba(106,79,216,0.08)', dark: 'rgba(185,166,255,0.14)' },
 } as const;

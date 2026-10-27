@@ -44,7 +44,6 @@ export const size = {
   row: 60,          // list rows
   segment: 40,      // segmented control options
   tabBar: 64,       // floating tab bar height
-  primary: 56,      // primary (holographic) button height
   maxContent: 560,  // readable column on web and tablets
 } as const;
 
@@ -55,7 +54,8 @@ function build(mode: 'light' | 'dark') {
       ...neutrals[mode],
       ...status[mode],
       accent: holo.accent[mode],
-      onAccent: holo.accentInk[mode],
+      secondary: holo.secondary[mode],
+      onSecondary: holo.secondaryInk[mode],
       accentTint: holo.tint[mode],
       onAction: holo.ink,
     },

@@ -72,7 +72,7 @@ export function HoloButton({
   const styles = useStyles();
   const still = !!disabled;
   const [reduceMotion, setReduceMotion] = useState(false);
-  const [box, setBox] = useState<{ w: number; h: number }>({ w: 320, h: t.size.primary });
+  const [box, setBox] = useState<{ w: number; h: number }>({ w: 320, h: t.size.control });
   const [sparks, setSparks] = useState<Spark[]>([]);
 
   // Pointer position (-1..1 from the center), whether a pointer is "live",
@@ -310,7 +310,7 @@ const useStyles = makeStyles((t) => ({
   pressable: { borderRadius: t.radius.md },
   disabled: { opacity: 0.4 },
   button: {
-    height: t.size.primary,
+    height: t.size.control,
     borderRadius: t.radius.md,
     overflow: 'hidden',
     alignItems: 'center',

@@ -13,7 +13,7 @@ import { useTheme, type Theme, type TypeVariant } from '@/theme';
 // and a tone; no font sizes or colors at the call site.
 // ---------------------------------------------------------------------------
 
-export type Tone = 'default' | 'muted' | 'danger' | 'success' | 'accent' | 'onAction' | 'onAccent';
+export type Tone = 'default' | 'muted' | 'danger' | 'success' | 'accent' | 'onAction' | 'onSecondary';
 
 const toneColor = (t: Theme, tone: Tone) =>
   ({
@@ -23,7 +23,7 @@ const toneColor = (t: Theme, tone: Tone) =>
     success: t.color.success,
     accent: t.color.accent,
     onAction: t.color.onAction, // on the holographic surface
-    onAccent: t.color.onAccent, // on a solid accent fill
+    onSecondary: t.color.onSecondary, // on the secondary button
   })[tone];
 
 export function Text({

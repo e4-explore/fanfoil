@@ -193,7 +193,7 @@ function Guide({ label }: { label?: string }) {
         <Lede>Lede: the short intro under a title.</Lede>
       </Component>
 
-      <Component name="Button" uses={['ui.Button', 'HoloButton.HoloButton']} note="primary (HoloButton): violet base with a holographic foil and brushed texture; the foil, glare, and 3D tilt follow the pointer or finger and drift on their own; a shine sweeps every few seconds; releasing throws holo sparks. secondary: solid accent. quiet: outlined. Disabled = the same look at 40% opacity, still.">
+      <Component name="Button" uses={['ui.Button', 'HoloButton.HoloButton']} note="primary (HoloButton): violet base with a holographic foil and brushed texture; the foil, glare, and 3D tilt follow the pointer or finger and drift on their own; a shine sweeps every few seconds; releasing throws holo sparks. secondary: soft tonal violet (t.color.secondary). quiet: outlined. Disabled = the same look at 40% opacity, still.">
         <Button label="Primary" onPress={noop} />
         <Button label="Primary disabled" disabled onPress={noop} style={styles.stack} />
         <Button label="Loading" loading onPress={noop} style={styles.stack} />
