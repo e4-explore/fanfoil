@@ -56,6 +56,9 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 //   native  fanfoil://auth/callback (exp://.../--/auth/callback in Expo Go)
 const redirectTo = () => Linking.createURL('auth/callback');
 
+// LOCAL TESTING ONLY, REMOVE BEFORE LAUNCH (see verifyEmailCode).
+const DEV_TEST_CODE = '000000';
+
 async function exchangeFromUrl(url: string) {
   const { queryParams } = Linking.parse(url);
   const code = typeof queryParams?.code === 'string' ? queryParams.code : undefined;
@@ -113,6 +116,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const verifyEmailCode = useCallback(async (email: string, code: string) => {
+    // LOCAL TESTING ONLY, REMOVE BEFORE LAUNCH: in development builds, 000000
+    // stands in for the emailed code (supabase/seeds/dev_test_code.sql).
+    if (__DEV__ && code === DEV_TEST_CODE) {
+      const { data } = await supabase.rpc('dev_email_code', { p_email: email });
+      if (typeof data === 'string') code = data;
+    }
     const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
     if (error) throw toAppError(error);
   }, []);

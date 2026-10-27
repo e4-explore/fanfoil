@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Image,
   AccessibilityInfo,
   Animated,
   PanResponder,
@@ -28,6 +29,7 @@ type Props = {
 // Web hover tilt is always on (unless Reduce Motion is set), so grids shimmer too.
 
 const MAX_TILT = 14; // degrees
+const brushed = require('../../assets/textures/holo-brushed.png');
 const ZERO = new Animated.Value(0); // stand-in when phone tilt is off
 
 export function HoloCard({ item, width, serial, interactive = true, useMotion = false }: Props) {
@@ -158,6 +160,8 @@ export function HoloCard({ item, width, serial, interactive = true, useMotion = 
 
         {/* Foil: a prismatic band that slides with the tilt */}
         <View style={[StyleSheet.absoluteFill, styles.clip, { borderRadius: radius.card * s }]} pointerEvents="none">
+          {/* Brushed-metal streaks, the same texture as the primary button */}
+          <Image source={brushed} resizeMode="repeat" style={styles.texture} accessible={false} />
           <Animated.View
             style={{
               position: 'absolute',
@@ -216,4 +220,5 @@ const styles = StyleSheet.create({
   subtitle: { fontFamily: fonts.bodyMedium, color: card.inkMuted },
   serial: { fontFamily: fonts.bodyBold, color: card.ink, fontVariant: ['tabular-nums'] },
   glare: { position: 'absolute' },
+  texture: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', mixBlendMode: 'overlay', opacity: 0.5 },
 });

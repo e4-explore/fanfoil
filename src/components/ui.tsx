@@ -197,20 +197,20 @@ export function Field(props: TextInputProps & { label: string }) {
   const { label, style, onFocus, onBlur, ...rest } = props;
   const styles = useStyles();
   const t = useTheme();
-  // Our own focus ring on every platform, instead of the browser's default
-  // outline on web and nothing on native.
+  // Our own focus state on every platform, instead of the browser's default
+  // outline on web and nothing on native: the gradient takes the place of
+  // the field's border, so nothing shifts or doubles up.
   const [focused, setFocused] = useState(false);
   return (
     <View style={styles.field}>
       <Text variant="small" tone="muted">
         {label}
       </Text>
-      <View>
-        {focused ? <FocusRing radius={radius.md} /> : null}
+      <View style={styles.inputWrap}>
         <TextInput
         placeholderTextColor={t.color.textMuted}
         selectionColor={t.color.accent}
-        style={[styles.input, style]}
+        style={[styles.input, noBrowserOutline, focused && styles.inputFocused, style]}
         accessibilityLabel={label}
         onFocus={(e) => {
           setFocused(true);
@@ -222,6 +222,7 @@ export function Field(props: TextInputProps & { label: string }) {
         }}
           {...rest}
         />
+        {focused ? <GradientRing radius={radius.md} /> : null}
       </View>
     </View>
   );
@@ -464,9 +465,10 @@ const useStyles = makeStyles((t) => ({
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },
   field: { marginTop: t.space.md },
+  inputWrap: { marginTop: t.space.xs },
+  inputFocused: { borderColor: 'transparent' },
   input: {
     ...t.type.body,
-    marginTop: t.space.xs,
     minHeight: t.size.control,
     borderRadius: t.radius.md,
     borderWidth: 1,

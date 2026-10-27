@@ -56,7 +56,8 @@ export function GradientRing({ radius: r, offset = 0 }: { radius: number; offset
       style={{ position: 'absolute', top: -offset, right: -offset, bottom: -offset, left: -offset }}
       onLayout={(e) => setBox(e.nativeEvent.layout)}
     >
-      {box ? (
+      {/* Skip until measured (hidden screens measure 0, which SVG rejects). */}
+      {box && box.width > stroke && box.height > stroke ? (
         <Svg width={box.width} height={box.height}>
           <Defs>
             <SvgGradient id={id} x1="0" y1="0" x2="1" y2="1">

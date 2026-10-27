@@ -218,7 +218,7 @@ function Guide({ label }: { label?: string }) {
         </View>
       </Component>
 
-      <Component name="Field" uses={['ui.Field']} note="Labeled text input. Accent border when focused.">
+      <Component name="Field" uses={['ui.Field']} note="Labeled text input. When focused, the gradient outline replaces its border.">
         <Field label="Email" placeholder="you@example.com" />
         <Field label="Display name" defaultValue="fan8" />
       </Component>

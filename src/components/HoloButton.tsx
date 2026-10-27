@@ -325,8 +325,6 @@ const useStyles = makeStyles((t) => ({
   shine: { mixBlendMode: 'screen' },
   label: {
     color: t.primary.ink,
-    textTransform: 'uppercase',
-    letterSpacing: t.type.label.fontSize * 0.08,
     textShadowColor: t.primary.inkShadow,
     textShadowOffset: { width: 0, height: -1 },
     textShadowRadius: 0,
