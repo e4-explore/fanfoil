@@ -149,7 +149,7 @@ export function Button({
   style?: StyleProp<ViewStyle>;
 }) {
   // primary    HoloButton: violet base with a holographic foil (see HoloButton)
-  // secondary  soft tonal violet
+  // secondary  solid violet, a little softer than the accent
   // quiet      outlined surface
   // Disabled: the same look at 40% opacity.
   const styles = useStyles();

@@ -70,10 +70,10 @@ export const holo = {
   stops: ['#FF3D9E', '#FFC53D', '#3DFF9E', '#3DD8FF', '#843DFF'] as const,
   ink: '#141413',
   accent: { light: '#6A4FD8', dark: '#B9A6FF' },
-  // Secondary button: a soft tonal violet, so it reads as a step below the
-  // saturated primary. Ink is 8.4:1 light, 10.6:1 dark.
-  secondary: { light: '#E9E0FF', dark: '#3A2A63' },
-  secondaryInk: { light: '#4C1D95', dark: '#E4D9FF' },
+  // Secondary button: a slightly softer shade of the accent violet, a step
+  // below the holographic primary. Ink is 4.7:1 light, 7.6:1 dark.
+  secondary: { light: '#7761DB', dark: '#AD99F7' },
+  secondaryInk: { light: '#FFFFFF', dark: '#141413' },
   // Faint accent wash inside selected chips.
   tint: { light: 'rgba(106,79,216,0.08)', dark: 'rgba(185,166,255,0.14)' },
 } as const;
