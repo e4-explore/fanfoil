@@ -1,12 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Platform, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { CardBack } from '@/components/CardBack';
 import { CollectibleCard } from '@/components/CollectibleCard';
 import type { InventoryItem } from '@/lib/types';
 
 // A card that starts face-down and flips over when `revealed` turns true.
-export function FlipCard({ item, width, revealed }: { item: InventoryItem; width: number; revealed: boolean }) {
+// With `onTap`, tapping either side calls it (e.g. to flip back and forth);
+// `interactive` lets the front be dragged to tilt.
+export function FlipCard({
+  item,
+  width,
+  revealed,
+  serial,
+  interactive = false,
+  onTap,
+}: {
+  item: InventoryItem;
+  width: number;
+  revealed: boolean;
+  serial?: number;
+  interactive?: boolean;
+  onTap?: () => void;
+}) {
   const turn = useRef(new Animated.Value(revealed ? 1 : 0)).current;
   const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -39,15 +55,25 @@ export function FlipCard({ item, width, revealed }: { item: InventoryItem; width
     <View style={{ width, height }}>
       <Animated.View
         importantForAccessibility={revealed ? 'no-hide-descendants' : 'yes'}
+        aria-hidden={revealed}
+        pointerEvents={revealed ? 'none' : 'auto'}
         style={[styles.face, { opacity: backOpacity, transform: [{ perspective: 900 }, { rotateY: backRotate }] }]}
       >
-        <CardBack width={width} logoUrl={item.league_logo_dark_url ?? item.league_logo_url} />
+        {onTap ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Card back. Tap to flip." onPress={onTap}>
+            <CardBack width={width} logoUrl={item.league_logo_dark_url ?? item.league_logo_url} />
+          </Pressable>
+        ) : (
+          <CardBack width={width} logoUrl={item.league_logo_dark_url ?? item.league_logo_url} />
+        )}
       </Animated.View>
       <Animated.View
         importantForAccessibility={revealed ? 'yes' : 'no-hide-descendants'}
+        aria-hidden={!revealed}
+        pointerEvents={revealed ? 'auto' : 'none'}
         style={[styles.face, { opacity: frontOpacity, transform: [{ perspective: 900 }, { rotateY: frontRotate }] }]}
       >
-        <CollectibleCard item={item} width={width} interactive={false} useMotion={revealed} />
+        <CollectibleCard item={item} width={width} serial={serial} interactive={interactive} useMotion={revealed} onTap={onTap} />
       </Animated.View>
     </View>
   );

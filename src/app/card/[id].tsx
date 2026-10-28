@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CollectibleCard } from '@/components/CollectibleCard';
+import { FlipCard } from '@/components/FlipCard';
 import { TeamLogo } from '@/components/TeamLogo';
 import { Button, Loading, Notice, Screen, Text } from '@/components/ui';
 import { api } from '@/lib/api';
@@ -16,6 +18,7 @@ export default function CardDetail() {
   const { width } = useWindowDimensions();
   const styles = useStyles();
   const t = useTheme();
+  const [flipped, setFlipped] = useState(false);
   const item = useQuery({ queryKey: ['inventory', 'item', id], queryFn: () => api.inventoryItem(id), enabled: !!id });
   // If the fan owns this card, show their copy (number, cert, vault status)
   // even when they opened it from All cards.
@@ -46,8 +49,18 @@ export default function CardDetail() {
   return (
     <Screen footer={<Button label="Back" variant="secondary" onPress={back} />}>
       <View style={styles.hero}>
-        <CollectibleCard item={card} width={cardWidth} serial={serialNumber} copy={copy} useMotion />
+        {card.kind === 'vaulted' ? (
+          <CollectibleCard item={card} width={cardWidth} serial={serialNumber} copy={copy} useMotion />
+        ) : (
+          // Fanfoil Originals: drag to tilt, tap to flip to the back and again to return.
+          <FlipCard item={card} width={cardWidth} serial={serialNumber} revealed={!flipped} interactive onTap={() => setFlipped((f) => !f)} />
+        )}
       </View>
+      {card.kind === 'vaulted' ? null : (
+        <Text variant="small" tone="muted" align="center">
+          Tap the card to flip it
+        </Text>
+      )}
       <Text variant="heading">{card.name}</Text>
       {team.data ? (
         <View style={styles.team}>

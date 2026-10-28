@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
+import { cssAngle, repeatedRainbow, SAMPLES, wave } from '@/components/holoMotion';
 import { FocusRing, noBrowserOutline, Text } from '@/components/primitives';
 import { makeStyles, useTheme } from '@/theme';
 
@@ -37,20 +38,9 @@ const TILT = 8; // degrees at the edge
 const perspectiveFor = (width: number) => 700 * Math.max(1, width / 220);
 const texture = require('../../assets/textures/holo-brushed.png');
 
-// Direction (CSS degrees: 0 = up, 90 = right) to expo-linear-gradient start/end.
-function angle(deg: number) {
-  const rad = (deg * Math.PI) / 180;
-  const x = Math.sin(rad) / 2;
-  const y = -Math.cos(rad) / 2;
-  return { start: { x: 0.5 - x, y: 0.5 - y }, end: { x: 0.5 + x, y: 0.5 + y } };
-}
-const BASE_DIR = angle(160);
-const FOIL_DIR = angle(115);
-const SHINE_DIR = angle(105);
-
-// Sampled sine/cosine for the idle drift, driven natively by a 0..1 phase.
-const SAMPLES = Array.from({ length: 17 }, (_, i) => i / 16);
-const wave = (amp: number, phase: number) => SAMPLES.map((p) => amp * Math.sin(2 * Math.PI * p + phase));
+const BASE_DIR = cssAngle(160);
+const FOIL_DIR = cssAngle(115);
+const SHINE_DIR = cssAngle(105);
 
 type Spark = { id: number; x: number; y: number; dx: number; dy: number; size: number; color: string; t: Animated.Value };
 let sparkId = 0;
@@ -202,9 +192,7 @@ export function HoloButton({
   const rotateX = motion.y.interpolate({ inputRange: [-1, 1], outputRange: [`${TILT}deg`, `-${TILT}deg`], extrapolate: 'clamp' });
   const shineX = v.shine.interpolate({ inputRange: [0, 1], outputRange: [-box.w * 1.3, box.w * 1.3] });
 
-  // Six-stop rainbow, repeated so the 220% layer shows about two cycles.
-  const foil = [...t.holo, t.holo[0], ...t.holo, t.holo[0]] as unknown as readonly [string, string, ...string[]];
-  const foilStops = foil.map((_, i) => i / (foil.length - 1)) as unknown as readonly [number, number, ...number[]];
+  const { colors: foil, locations: foilStops } = repeatedRainbow(t.holo);
 
   return (
     <View style={[styles.root, still && styles.disabled, style]}>

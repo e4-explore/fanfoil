@@ -26,6 +26,7 @@
     "components/HoloCard.tsx"
   ],
   "FlipCard.FlipCard": [
+    "app/card/[id].tsx",
     "app/onboarding/claim.tsx"
   ],
   "GlassTabBar.GlassTabBar": [
@@ -53,6 +54,27 @@
     "app/(tabs)/profile.tsx",
     "app/card/[id].tsx",
     "app/onboarding/team.tsx"
+  ],
+  "holoMotion.SAMPLES": [
+    "components/HoloButton.tsx",
+    "components/HoloCard.tsx"
+  ],
+  "holoMotion.cssAngle": [
+    "components/CardBack.tsx",
+    "components/HoloButton.tsx",
+    "components/HoloCard.tsx"
+  ],
+  "holoMotion.repeatedRainbow": [
+    "components/CardBack.tsx",
+    "components/HoloButton.tsx",
+    "components/HoloCard.tsx"
+  ],
+  "holoMotion.useIdleDrift": [
+    "components/HoloCard.tsx"
+  ],
+  "holoMotion.wave": [
+    "components/HoloButton.tsx",
+    "components/HoloCard.tsx"
   ],
   "primitives.FocusRing": [
     "components/HoloButton.tsx",

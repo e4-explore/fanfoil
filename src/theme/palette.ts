@@ -105,12 +105,24 @@ export const card = {
   shadow: '#000000',
   glare: '#FFFFFF',
   courtLine: 'rgba(255,255,255,0.13)',
+  // Face-down side: a dark panel, thin inner frame, crosshatch, and a
+  // double-ring medallion around the league logo, under a faint holo wash.
   back: {
-    stock: '#3A3F7A',
-    panel: ['#262A5E', '#0E1030'] as const,
-    weave: 'rgba(255,255,255,0.06)',
-    mark: '#B9A6FF',
+    panel: ['#222936', '#0C0F14'] as const,
+    frame: 'rgba(255,255,255,0.28)',
+    hatch: 'rgba(255,255,255,0.07)',
+    ringInner: 'rgba(255,255,255,0.55)',
+    ringOuter: 'rgba(255,255,255,0.40)',
   },
+  // Foil card extras: the rainbow rim (brighter than holo.stops), the soft
+  // light behind the card, and its drop shadow.
+  edge: ['#FF66B3', '#FFC94D', '#33FF99', '#4DC3FF', '#A570FF', '#FF66B3'] as const,
+  // The glow layer is filled too (not just a box-shadow ring), so nothing
+  // hollow peeks out from behind a tilted card.
+  aura: '0px 0px 34px 6px rgba(255,61,158,0.22), 0px 0px 44px 10px rgba(132,61,255,0.20)',
+  auraFill: 'rgba(194,61,206,0.21)',
+  dropShadow: '0px 14px 26px rgba(0,0,0,0.35)',
+  shine: 'rgba(255,255,255,0.55)',
   // Bands across a card: "All claimed" (no copies left) and "Yours" (owned;
   // drawn on the holographic gradient with holo.ink).
   banner: { fill: 'rgba(20,20,19,0.82)', ink: '#FAF9F5', edge: 'rgba(250,249,245,0.35)', holoVeil: 'rgba(255,255,255,0.40)' },
@@ -128,12 +140,15 @@ export const card = {
     sampleInk: '#141413',
   },
   foil: {
+    // frame: the metallic border around the art window (145deg).
     role: {
+      frame: ['#F4F6F9', '#9AA3B0', '#E6E9EE', '#7D8794'] as const,
       stock: '#DCDDEA',
       panel: ['#2B2F66', '#1B1E47'] as const,
       sheen: ['rgba(140,220,255,0)', 'rgba(140,220,255,0.55)', 'rgba(255,140,230,0.5)', 'rgba(255,255,255,0)'] as const,
     },
     storyline: {
+      frame: ['#FFF4D6', '#C9A44C', '#F6E3A8', '#9C7A2E'] as const,
       stock: '#F2D98A',
       panel: ['#4A2A12', '#21143A'] as const,
       sheen: ['rgba(255,215,120,0)', 'rgba(255,230,150,0.7)', 'rgba(150,255,220,0.45)', 'rgba(255,255,255,0)'] as const,
