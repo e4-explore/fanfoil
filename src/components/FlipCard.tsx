@@ -25,22 +25,23 @@ export function FlipCard({
 }) {
   const turn = useRef(new Animated.Value(revealed ? 1 : 0)).current;
   const [reduceMotion, setReduceMotion] = useState(false);
+  // The side the card last came to rest on. While it differs from `revealed`
+  // the card is mid-turn.
+  const [settled, setSettled] = useState(revealed);
+  const turning = settled !== revealed;
 
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (reduceMotion) {
-      turn.setValue(revealed ? 1 : 0);
-      return;
-    }
-    Animated.spring(turn, {
-      toValue: revealed ? 1 : 0,
-      friction: 7,
-      tension: 40,
-      useNativeDriver: Platform.OS !== 'web',
-    }).start();
+    const native = Platform.OS !== 'web';
+    const motion = reduceMotion
+      ? Animated.timing(turn, { toValue: revealed ? 1 : 0, duration: 0, useNativeDriver: native })
+      : Animated.spring(turn, { toValue: revealed ? 1 : 0, friction: 7, tension: 40, useNativeDriver: native });
+    motion.start(({ finished }) => {
+      if (finished) setSettled(revealed);
+    });
   }, [revealed, reduceMotion, turn]);
 
   // Two half-turns instead of relying on backface-visibility, which nested 3D
@@ -50,6 +51,16 @@ export function FlipCard({
   const backOpacity = turn.interpolate({ inputRange: [0, 0.5, 0.501, 1], outputRange: [1, 1, 0, 0], extrapolate: 'clamp' });
   const frontOpacity = turn.interpolate({ inputRange: [0, 0.5, 0.501, 1], outputRange: [0, 0, 1, 1], extrapolate: 'clamp' });
   const height = Math.round(width * 1.4);
+  // At rest the faces carry no 3D transform at all. A foil card does its own
+  // perspective tilt, and nesting it inside a second 3D transform makes iOS
+  // split its blend layers into two triangles (a hard diagonal across the
+  // card). So the flip's transform exists only while turning.
+  const backStyle = turning
+    ? { opacity: backOpacity, transform: [{ perspective: 900 }, { rotateY: backRotate }] }
+    : { opacity: revealed ? 0 : 1 };
+  const frontStyle = turning
+    ? { opacity: frontOpacity, transform: [{ perspective: 900 }, { rotateY: frontRotate }] }
+    : { opacity: revealed ? 1 : 0 };
 
   return (
     <View style={{ width, height }}>
@@ -57,7 +68,7 @@ export function FlipCard({
         importantForAccessibility={revealed ? 'no-hide-descendants' : 'yes'}
         aria-hidden={revealed}
         pointerEvents={revealed ? 'none' : 'auto'}
-        style={[styles.face, { opacity: backOpacity, transform: [{ perspective: 900 }, { rotateY: backRotate }] }]}
+        style={[styles.face, backStyle]}
       >
         {onTap ? (
           <Pressable accessibilityRole="button" accessibilityLabel="Card back. Tap to flip." onPress={onTap}>
@@ -71,7 +82,7 @@ export function FlipCard({
         importantForAccessibility={revealed ? 'yes' : 'no-hide-descendants'}
         aria-hidden={!revealed}
         pointerEvents={revealed ? 'auto' : 'none'}
-        style={[styles.face, { opacity: frontOpacity, transform: [{ perspective: 900 }, { rotateY: frontRotate }] }]}
+        style={[styles.face, frontStyle]}
       >
         <CollectibleCard item={item} width={width} serial={serial} interactive={interactive} useMotion={revealed} onTap={onTap} />
       </Animated.View>
