@@ -91,9 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setInitializing(false);
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
-      if (!next) queryClient.clear();
+      // Drop the signed-out user's cached data on an actual sign-out only.
+      // Clearing on the initial "no session" event would wipe queries that
+      // screens are already waiting on (e.g. a card opened by link while
+      // signed out), leaving them on a spinner forever.
+      if (event === 'SIGNED_OUT') queryClient.clear();
     });
     return () => data.subscription.unsubscribe();
   }, [queryClient]);
