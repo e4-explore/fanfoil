@@ -52,8 +52,9 @@ export default function CardDetail() {
         {card.kind === 'vaulted' ? (
           <CollectibleCard item={card} width={cardWidth} serial={serialNumber} copy={copy} useMotion />
         ) : (
-          // Fanfoil Originals: drag to tilt, tap to flip to the back and again to return.
-          <FlipCard item={card} width={cardWidth} serial={serialNumber} revealed={!flipped} interactive onTap={() => setFlipped((f) => !f)} />
+          // Fanfoil Originals: the same foil as the grid (phone tilt, idle drift,
+          // no drag or glow), plus tap to flip to the back and again to return.
+          <FlipCard item={card} width={cardWidth} serial={serialNumber} revealed={!flipped} onTap={() => setFlipped((f) => !f)} />
         )}
       </View>
       {card.kind === 'vaulted' ? null : (
